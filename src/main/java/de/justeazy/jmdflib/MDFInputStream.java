@@ -3,6 +3,8 @@ package de.justeazy.jmdflib;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -11,8 +13,9 @@ import org.apache.logging.log4j.Logger;
 
 import de.justeazy.jmdflib.blocktypes.HDBlock;
 import de.justeazy.jmdflib.blocktypes.IDBlock;
-import de.justeazy.jmdflib.enums.ByteOrder;
+import java.nio.ByteOrder;
 import de.justeazy.jmdflib.enums.FloatingPointFormat;
+import de.justeazy.jmdflib.enums.TimeQualityClass;
 
 /**
  * <p>
@@ -275,6 +278,7 @@ public class MDFInputStream extends FileInputStream {
 		for (int i = this.filePointer; i < this.filePointer + 2; i++) {
 			blockTypeIdentifier += (char) this.content[i];
 		}
+		this.filePointer += 2;
 		hdBlock.setBlockTypeIdentifier(blockTypeIdentifier);
 		l.trace("blockTypeIdentifier = " + blockTypeIdentifier);
 
@@ -283,6 +287,130 @@ public class MDFInputStream extends FileInputStream {
 		this.filePointer += 2;
 		hdBlock.setBlockSize(blockSize);
 		l.trace("blockSize = " + blockSize);
+
+		// pointer to first DGBlock
+		long pointerToFirstDGBlock = readUint32(this.content[this.filePointer], this.content[this.filePointer + 1],
+				this.content[this.filePointer + 2], this.content[this.filePointer + 3]);
+		this.filePointer += 4;
+		hdBlock.setPointerToFirstDGBlock(pointerToFirstDGBlock);
+		l.trace("pointerToFirstDGBlock = " + pointerToFirstDGBlock);
+
+		// pointer to TXBlock (nil allowed)
+		long pointerToTXBlock = readUint32(this.content[this.filePointer], this.content[this.filePointer + 1],
+				this.content[this.filePointer + 2], this.content[this.filePointer + 3]);
+		this.filePointer += 4;
+		hdBlock.setPointerToTXBlock(pointerToTXBlock);
+		l.trace("pointerToTXBlock = " + pointerToTXBlock);
+
+		// pointer to PRBlock (nil allowed)
+		long pointerToPRBlock = readUint32(this.content[this.filePointer], this.content[this.filePointer + 1],
+				this.content[this.filePointer + 2], this.content[this.filePointer + 3]);
+		this.filePointer += 4;
+		hdBlock.setPointerToPRBlock(pointerToPRBlock);
+		l.trace("pointerToPRBlock = " + pointerToPRBlock);
+
+		// number of data groups
+		int numberOfDataGroups = readUint16(this.content[this.filePointer], this.content[this.filePointer + 1]);
+		this.filePointer += 2;
+		hdBlock.setNumberOfDataGroups(numberOfDataGroups);
+		l.trace("numberOfDataGroups = " + numberOfDataGroups);
+
+		// recording start date
+		String recordingStartDate = "";
+		for (int i = this.filePointer; i < this.filePointer + 10; i++) {
+			recordingStartDate += (char) this.content[i];
+		}
+		this.filePointer += 10;
+		hdBlock.setRecordingStartDate(recordingStartDate);
+		l.trace("recordingStartDate = " + recordingStartDate);
+
+		// recording start time
+		String recordingStartTime = "";
+		for (int i = this.filePointer; i < this.filePointer + 8; i++) {
+			recordingStartTime += (char) this.content[i];
+		}
+		this.filePointer += 8;
+		hdBlock.setRecordingStartTime(recordingStartTime);
+		l.trace("recordingStartTime = " + recordingStartTime);
+
+		// authors name
+		String authorsName = "";
+		for (int i = this.filePointer; i < this.filePointer + 32; i++) {
+			authorsName += (char) this.content[i];
+		}
+		this.filePointer += 32;
+		hdBlock.setAuthorsName(authorsName);
+		l.trace("authorsName = " + authorsName);
+
+		// organizations name
+		String organizationsName = "";
+		for (int i = this.filePointer; i < this.filePointer + 32; i++) {
+			organizationsName += (char) this.content[i];
+		}
+		this.filePointer += 32;
+		hdBlock.setOrganizationsName(organizationsName);
+		l.trace("organizationsName = " + organizationsName);
+
+		// projects name
+		String projectsName = "";
+		for (int i = this.filePointer; i < this.filePointer + 32; i++) {
+			projectsName += (char) this.content[i];
+		}
+		this.filePointer += 32;
+		hdBlock.setProjectsName(projectsName);
+		l.trace("projectsName = " + projectsName);
+
+		// measurement object
+		String measurementObject = "";
+		for (int i = this.filePointer; i < this.filePointer + 32; i++) {
+			measurementObject += (char) this.content[i];
+		}
+		this.filePointer += 32;
+		hdBlock.setMeasurementObject(measurementObject);
+		l.trace("measurementObject = " + measurementObject);
+
+		// recording start timestamp
+		BigInteger recordingStartTimestamp = readUint64(this.content[this.filePointer],
+				this.content[this.filePointer + 1], this.content[this.filePointer + 2],
+				this.content[this.filePointer + 3], this.content[this.filePointer + 4],
+				this.content[this.filePointer + 5], this.content[this.filePointer + 6],
+				this.content[this.filePointer + 7]);
+		this.filePointer += 8;
+		hdBlock.setRecordingStartTimestamp(recordingStartTimestamp);
+		l.trace("recordingStartTimestamp = " + recordingStartTimestamp);
+
+		// UTC time offset
+		int utcTimeOffset = readSint16(this.content[this.filePointer], this.content[this.filePointer + 1]);
+		this.filePointer += 2;
+		hdBlock.setUtcTimeOffset(utcTimeOffset);
+		l.trace("utcTimeOffset = " + utcTimeOffset);
+
+		// time quality class
+		int timeQualityClass = readUint16(this.content[this.filePointer], this.content[this.filePointer + 1]);
+		this.filePointer += 2;
+		switch (timeQualityClass) {
+		case 0:
+			hdBlock.setTimeQualityClass(TimeQualityClass.LOCAL_PC_REFERENCE_TIME);
+			break;
+		case 10:
+			hdBlock.setTimeQualityClass(TimeQualityClass.EXTERNAL_TIME_SOURCE);
+			break;
+		case 16:
+			hdBlock.setTimeQualityClass(TimeQualityClass.EXTERNAL_ABSOLUTE_SYNCHRONIZED_TIME);
+			break;
+		default:
+			throw new IOException("Wrong time quality class (" + timeQualityClass + ").");
+		}
+		l.trace("hdBlock.timeQualityClass = " + hdBlock.getTimeQualityClass());
+
+		// timer identification
+		String timerIdentification = "";
+		for (int i = this.filePointer; i < this.filePointer + 32; i++) {
+			timerIdentification += (char) this.content[i];
+		}
+		this.filePointer += 32;
+		hdBlock.setTimerIdentification(timerIdentification);
+		l.trace("timerIdentification = " + timerIdentification);
 	}
 
 	/**
@@ -298,7 +426,8 @@ public class MDFInputStream extends FileInputStream {
 
 	/**
 	 * <p>
-	 * Reads a uint16 from two bytes with little endian byte order.
+	 * Reads a uint16 from two bytes with default byte order (or little endian
+	 * if default byte order is not set yet).
 	 * </p>
 	 * 
 	 * @param byte1
@@ -309,8 +438,14 @@ public class MDFInputStream extends FileInputStream {
 	 * @throws IOException
 	 *             if there is an error reading the uint16
 	 */
-	private static int readUint16(byte byte1, byte byte2) throws IOException {
-		return readUint16(byte1, byte2, ByteOrder.LITTLE_ENDIAN);
+	private int readUint16(byte byte1, byte byte2) throws IOException {
+		ByteOrder byteOrder;
+		if (this.idBlock == null || idBlock.getDefaultByteOrder() == null) {
+			byteOrder = ByteOrder.LITTLE_ENDIAN;
+		} else {
+			byteOrder = idBlock.getDefaultByteOrder();
+		}
+		return readUint16(byte1, byte2, byteOrder);
 	}
 
 	/**
@@ -331,8 +466,7 @@ public class MDFInputStream extends FileInputStream {
 	private static int readUint16(byte byte1, byte byte2, ByteOrder byteOrder) throws IOException {
 		int result = 0;
 
-		switch (byteOrder) {
-		case LITTLE_ENDIAN:
+		if (byteOrder == ByteOrder.LITTLE_ENDIAN) {
 			int int1 = byte1;
 			if (byte1 < 0) {
 				int1 = byte1 << 24;
@@ -346,12 +480,99 @@ public class MDFInputStream extends FileInputStream {
 			int2 = int2 << 8;
 
 			result = int1 + int2;
-			break;
-		default:
-			throw new IOException("Not implemented yet.");
+		} else {
+			throw new IOException(
+					"Wrong byte order (should be LITTLE_ENDIAN, but was BIG_ENDIAN). Not implemented yet.");
 		}
 
 		return result;
+	}
+
+	private short readSint16(byte byte1, byte byte2) {
+		ByteOrder byteOrder;
+		if (this.idBlock == null || idBlock.getDefaultByteOrder() == null) {
+			byteOrder = ByteOrder.LITTLE_ENDIAN;
+		} else {
+			byteOrder = idBlock.getDefaultByteOrder();
+		}
+		return readSint16(byte1, byte2, byteOrder);
+	}
+
+	private static short readSint16(byte byte1, byte byte2, ByteOrder byteOrder) {
+		ByteBuffer bb = ByteBuffer.allocateDirect(2);
+		bb.put(byte1);
+		bb.put(byte2);
+		if (byteOrder == ByteOrder.LITTLE_ENDIAN) {
+			bb.order(ByteOrder.LITTLE_ENDIAN);
+		} else {
+			bb.order(ByteOrder.BIG_ENDIAN);
+		}
+		bb.flip();
+		return bb.getShort();
+	}
+
+	private long readUint32(byte byte1, byte byte2, byte byte3, byte byte4) throws IOException {
+		ByteOrder byteOrder;
+		if (this.idBlock == null || idBlock.getDefaultByteOrder() == null) {
+			byteOrder = ByteOrder.LITTLE_ENDIAN;
+		} else {
+			byteOrder = idBlock.getDefaultByteOrder();
+		}
+		return readUint32(byte1, byte2, byte3, byte4, byteOrder);
+	}
+
+	private static long readUint32(byte byte1, byte byte2, byte byte3, byte byte4, ByteOrder byteOrder)
+			throws IOException {
+		if (byteOrder == ByteOrder.LITTLE_ENDIAN) {
+			ByteBuffer bb = ByteBuffer.allocate(8);
+			bb.put(byte1);
+			bb.put(byte2);
+			bb.put(byte3);
+			bb.put(byte4);
+			bb.put((byte) 0x00);
+			bb.put((byte) 0x00);
+			bb.put((byte) 0x00);
+			bb.put((byte) 0x00);
+			bb.order(ByteOrder.LITTLE_ENDIAN);
+			bb.flip();
+			return bb.getLong();
+		} else {
+			throw new IOException(
+					"Wrong byte order (should be LITTLE_ENDIAN, but was BIG_ENDIAN). Not implemented yet.");
+		}
+	}
+
+	private BigInteger readUint64(byte byte1, byte byte2, byte byte3, byte byte4, byte byte5, byte byte6, byte byte7,
+			byte byte8) throws IOException {
+		ByteOrder byteOrder;
+		if (this.idBlock == null || idBlock.getDefaultByteOrder() == null) {
+			byteOrder = ByteOrder.LITTLE_ENDIAN;
+		} else {
+			byteOrder = idBlock.getDefaultByteOrder();
+		}
+		return readUint64(byte1, byte2, byte3, byte4, byte5, byte6, byte7, byte8, byteOrder);
+	}
+
+	private static BigInteger readUint64(byte byte1, byte byte2, byte byte3, byte byte4, byte byte5, byte byte6,
+			byte byte7, byte byte8, ByteOrder byteOrder) throws IOException {
+		if (byteOrder == ByteOrder.LITTLE_ENDIAN) {
+			BigInteger result = new BigInteger(((long) byte1 & 0xFF) + "");
+			result = result.add(new BigInteger((((long) byte2 & 0xFF) << 8) + ""));
+			result = result.add(new BigInteger((((long) byte3 & 0xFF) << 16) + ""));
+			result = result.add(new BigInteger((((long) byte4 & 0xFF) << 24) + ""));
+			result = result.add(new BigInteger((((long) byte5 & 0xFF) << 32) + ""));
+			result = result.add(new BigInteger((((long) byte6 & 0xFF) << 40) + ""));
+			result = result.add(new BigInteger((((long) byte7 & 0xFF) << 48) + ""));
+			result = result.add(new BigInteger((((long) byte8 & 0xFF) << 56) + ""));
+			return result;
+			/*
+			 * long l = (long)b[0] & 0xFF; l += ((long)b[1] & 0xFF) << 8; l +=
+			 * ((long)b[2] & 0xFF) << 16; l += ((long)b[3] & 0xFF) << 24;
+			 */
+		} else {
+			throw new IOException(
+					"Wrong byte order (should be LITTLE_ENDIAN, but was BIG_ENDIAN). Not implemented yet.");
+		}
 	}
 
 }

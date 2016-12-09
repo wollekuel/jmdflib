@@ -1,6 +1,6 @@
 package de.justeazy.jmdflib.blocktypes;
 
-import de.justeazy.jmdflib.enums.ByteOrder;
+import java.nio.ByteOrder;
 import de.justeazy.jmdflib.enums.FloatingPointFormat;
 
 /**
