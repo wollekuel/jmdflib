@@ -9,6 +9,7 @@ I'm using Vector's specification document for version 3.1.1, accessible from the
 ### Implemented block types
 
 * IDBlock
+* HDBlock
 
 ### Missing block types
 
