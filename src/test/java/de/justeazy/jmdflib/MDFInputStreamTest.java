@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 
+import de.justeazy.jmdflib.blocktypes.HDBlock;
 import de.justeazy.jmdflib.blocktypes.IDBlock;
 import de.justeazy.jmdflib.enums.ByteOrder;
 import de.justeazy.jmdflib.enums.FloatingPointFormat;
@@ -51,6 +52,12 @@ public class MDFInputStreamTest extends TestCase {
 		assertThat(idBlock.getReservedStructure2().trim()).isEqualTo("");
 		assertThat(idBlock.getStandardFlags()).isEqualTo(0);
 		assertThat(idBlock.getCustomFlags()).isEqualTo(0);
+	}
+
+	public void testHdBlock() throws Exception {
+		HDBlock hdBlock = is.getHdBlock();
+		assertThat(hdBlock.getBlockTypeIdentifier()).isEqualTo("HD");
+		assertThat(hdBlock.getBlockSize()).isEqualTo(17480);
 	}
 
 }

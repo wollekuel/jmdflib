@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import de.justeazy.jmdflib.blocktypes.HDBlock;
 import de.justeazy.jmdflib.blocktypes.IDBlock;
 import de.justeazy.jmdflib.enums.ByteOrder;
 import de.justeazy.jmdflib.enums.FloatingPointFormat;
@@ -56,6 +57,11 @@ public class MDFInputStream extends FileInputStream {
 	 * IDBlock
 	 */
 	private IDBlock idBlock;
+
+	/**
+	 * HDBlock
+	 */
+	private HDBlock hdBlock;
 
 	/**
 	 * <p>
@@ -115,6 +121,7 @@ public class MDFInputStream extends FileInputStream {
 	 */
 	private void processFile() throws IOException {
 		readIDBlock();
+		readHDBlock();
 	}
 
 	/**
@@ -234,7 +241,7 @@ public class MDFInputStream extends FileInputStream {
 		int customFlags = readUint16(this.content[this.filePointer], this.content[this.filePointer + 1]);
 		this.filePointer += 2;
 		idBlock.setCustomFlags(customFlags);
-		l.debug("customFlags = " + customFlags);
+		l.trace("customFlags = " + customFlags);
 		if (customFlags != 0) {
 			throw new IOException("Wrong custom flags (should be 0, but was \"" + customFlags
 					+ "\"). Unfinalized MDFs are not supported yet.");
@@ -250,6 +257,43 @@ public class MDFInputStream extends FileInputStream {
 	 */
 	public IDBlock getIdBlock() {
 		return idBlock;
+	}
+
+	/**
+	 * <p>
+	 * Reads the header block (general information of the file).
+	 * </p>
+	 * 
+	 * @throws IOException
+	 */
+	public void readHDBlock() throws IOException {
+		this.filePointer = 64;
+		hdBlock = new HDBlock();
+
+		// block type identifier
+		String blockTypeIdentifier = "";
+		for (int i = this.filePointer; i < this.filePointer + 2; i++) {
+			blockTypeIdentifier += (char) this.content[i];
+		}
+		hdBlock.setBlockTypeIdentifier(blockTypeIdentifier);
+		l.trace("blockTypeIdentifier = " + blockTypeIdentifier);
+
+		// block size
+		int blockSize = readUint16(this.content[this.filePointer], this.content[this.filePointer + 1]);
+		this.filePointer += 2;
+		hdBlock.setBlockSize(blockSize);
+		l.trace("blockSize = " + blockSize);
+	}
+
+	/**
+	 * <p>
+	 * Returns the HDBlock.
+	 * </p>
+	 * 
+	 * @return HDBlock
+	 */
+	public HDBlock getHdBlock() {
+		return hdBlock;
 	}
 
 	/**
