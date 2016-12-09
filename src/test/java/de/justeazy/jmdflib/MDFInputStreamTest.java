@@ -45,6 +45,12 @@ public class MDFInputStreamTest extends TestCase {
 		assertThat(idBlock.getDefaultFloatingPointFormat()).isEqualTo(FloatingPointFormat.IEEE_754);
 		assertThat(idBlock.getVersionNumber()).isEqualTo(330);
 		assertThat(idBlock.getCodePage()).isEqualTo(0);
+		assertThat(idBlock.getReservedStructure1().length()).isEqualTo(2);
+		assertThat(idBlock.getReservedStructure1().trim()).isEqualTo("");
+		assertThat(idBlock.getReservedStructure2().length()).isEqualTo(26);
+		assertThat(idBlock.getReservedStructure2().trim()).isEqualTo("");
+		assertThat(idBlock.getStandardFlags()).isEqualTo(0);
+		assertThat(idBlock.getCustomFlags()).isEqualTo(0);
 	}
 
 }

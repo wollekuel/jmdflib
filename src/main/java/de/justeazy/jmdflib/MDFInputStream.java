@@ -170,8 +170,9 @@ public class MDFInputStream extends FileInputStream {
 		this.filePointer += 2;
 		idBlock.setDefaultByteOrder(defaultByteOrder);
 		l.trace("defaultByteOrder = " + defaultByteOrder);
-		if (defaultByteOrder == ByteOrder.BIG_ENDIAN) {
-			throw new IOException("Not implemented yet");
+		if (defaultByteOrder != ByteOrder.LITTLE_ENDIAN) {
+			throw new IOException(
+					"Wrong byte order (should be LITTLE_ENDIAN, but was BIG_ENDIAN). BIG_ENDIAN is not implemented yet");
 		}
 
 		// default floating point format
@@ -200,6 +201,44 @@ public class MDFInputStream extends FileInputStream {
 		this.filePointer += 2;
 		idBlock.setCodePage(codePage);
 		l.trace("codePage = " + codePage);
+
+		// first reserved structure
+		String reservedStructure1 = "";
+		for (int i = this.filePointer; i < this.filePointer + 2; i++) {
+			reservedStructure1 += (char) this.content[i];
+		}
+		this.filePointer += 2;
+		idBlock.setReservedStructure1(reservedStructure1);
+		l.trace("reservedStructure1 = \"" + reservedStructure1 + "\"");
+
+		// second reserved structure
+		String reservedStructure2 = "";
+		for (int i = this.filePointer; i < this.filePointer + 26; i++) {
+			reservedStructure2 += (char) this.content[i];
+		}
+		this.filePointer += 26;
+		idBlock.setReservedStructure2(reservedStructure2);
+		l.trace("reservedStructure2 = \"" + reservedStructure2 + "\"");
+
+		// standard flags for unfinalized mdfs
+		int standardFlags = readUint16(this.content[this.filePointer], this.content[this.filePointer + 1]);
+		this.filePointer += 2;
+		idBlock.setStandardFlags(standardFlags);
+		l.trace("standardFlags = " + standardFlags);
+		if (standardFlags != 0) {
+			throw new IOException("Wrong standard flags (should be 0, but was \"" + standardFlags
+					+ "\"). Unfinalized MDFs are not supported yet.");
+		}
+
+		// custom flags for unfinalized mdfs
+		int customFlags = readUint16(this.content[this.filePointer], this.content[this.filePointer + 1]);
+		this.filePointer += 2;
+		idBlock.setCustomFlags(customFlags);
+		l.debug("customFlags = " + customFlags);
+		if (customFlags != 0) {
+			throw new IOException("Wrong custom flags (should be 0, but was \"" + customFlags
+					+ "\"). Unfinalized MDFs are not supported yet.");
+		}
 	}
 
 	/**
