@@ -30,6 +30,14 @@ public class IDBlock {
 	private int versionNumber;
 
 	private int codePage;
+	
+	private String reservedStructure1;
+	
+	private String reservedStructure2;
+	
+	private int standardFlags;
+	
+	private int customFlags;
 
 	public String getFileIdentifier() {
 		return fileIdentifier;
@@ -85,6 +93,38 @@ public class IDBlock {
 
 	public void setCodePage(int codePage) {
 		this.codePage = codePage;
+	}
+
+	public String getReservedStructure1() {
+		return reservedStructure1;
+	}
+
+	public void setReservedStructure1(String reservedStructure1) {
+		this.reservedStructure1 = reservedStructure1;
+	}
+
+	public String getReservedStructure2() {
+		return reservedStructure2;
+	}
+
+	public void setReservedStructure2(String reservedStructure2) {
+		this.reservedStructure2 = reservedStructure2;
+	}
+
+	public int getStandardFlags() {
+		return standardFlags;
+	}
+
+	public void setStandardFlags(int standardFlags) {
+		this.standardFlags = standardFlags;
+	}
+
+	public int getCustomFlags() {
+		return customFlags;
+	}
+
+	public void setCustomFlags(int customFlags) {
+		this.customFlags = customFlags;
 	}
 
 }
