@@ -275,12 +275,10 @@ public class MDFInputStream extends FileInputStream {
 		hdBlock = new HDBlock();
 
 		// block type identifier
-		String blockTypeIdentifier = "";
-		for (int i = this.filePointer; i < this.filePointer + 2; i++) {
-			blockTypeIdentifier += (char) this.content[i];
-		}
-		this.filePointer += 2;
+		count = 2;
+		String blockTypeIdentifier = readChar(filePointer, count);
 		hdBlock.setBlockTypeIdentifier(blockTypeIdentifier);
+		this.filePointer += count;
 		l.trace("blockTypeIdentifier = " + blockTypeIdentifier);
 
 		// block size
@@ -317,48 +315,38 @@ public class MDFInputStream extends FileInputStream {
 		l.trace("numberOfDataGroups = " + numberOfDataGroups);
 
 		// recording start date
-		String recordingStartDate = "";
-		for (int i = this.filePointer; i < this.filePointer + 10; i++) {
-			recordingStartDate += (char) this.content[i];
-		}
-		this.filePointer += 10;
+		count = 10;
+		String recordingStartDate = readChar(filePointer, count);
 		hdBlock.setRecordingStartDate(recordingStartDate);
+		this.filePointer += count;
 		l.trace("recordingStartDate = " + recordingStartDate);
 
 		// recording start time
-		String recordingStartTime = "";
-		for (int i = this.filePointer; i < this.filePointer + 8; i++) {
-			recordingStartTime += (char) this.content[i];
-		}
-		this.filePointer += 8;
+		count = 8;
+		String recordingStartTime = readChar(filePointer, count);
 		hdBlock.setRecordingStartTime(recordingStartTime);
+		this.filePointer += count;
 		l.trace("recordingStartTime = " + recordingStartTime);
 
 		// authors name
-		String authorsName = "";
-		for (int i = this.filePointer; i < this.filePointer + 32; i++) {
-			authorsName += (char) this.content[i];
-		}
-		this.filePointer += 32;
+		count = 32;
+		String authorsName = readChar(filePointer, count);
 		hdBlock.setAuthorsName(authorsName);
+		this.filePointer += count;
 		l.trace("authorsName = " + authorsName);
 
 		// organizations name
-		String organizationsName = "";
-		for (int i = this.filePointer; i < this.filePointer + 32; i++) {
-			organizationsName += (char) this.content[i];
-		}
-		this.filePointer += 32;
+		count = 32;
+		String organizationsName = readChar(filePointer, count);
 		hdBlock.setOrganizationsName(organizationsName);
+		this.filePointer += count;
 		l.trace("organizationsName = " + organizationsName);
 
 		// projects name
-		String projectsName = "";
-		for (int i = this.filePointer; i < this.filePointer + 32; i++) {
-			projectsName += (char) this.content[i];
-		}
-		this.filePointer += 32;
+		count = 32;
+		String projectsName = readChar(filePointer, count);
 		hdBlock.setProjectsName(projectsName);
+		filePointer += count;
 		l.trace("projectsName = " + projectsName);
 
 		// measurement object
