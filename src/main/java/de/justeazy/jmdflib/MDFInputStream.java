@@ -362,12 +362,10 @@ public class MDFInputStream extends FileInputStream {
 		l.trace("projectsName = " + projectsName);
 
 		// measurement object
-		String measurementObject = "";
-		for (int i = this.filePointer; i < this.filePointer + 32; i++) {
-			measurementObject += (char) this.content[i];
-		}
-		this.filePointer += 32;
+		count = 32;
+		String measurementObject = readChar(this.filePointer, count);
 		hdBlock.setMeasurementObject(measurementObject);
+		this.filePointer += count;
 		l.trace("measurementObject = " + measurementObject);
 
 		// recording start timestamp
