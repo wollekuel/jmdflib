@@ -270,20 +270,16 @@ public class MDFInputStream extends FileInputStream {
 	 * @throws IOException
 	 */
 	private void readHDBlock() throws IOException {
-		int count;
 		this.filePointer = 64;
 		hdBlock = new HDBlock();
 
 		// block type identifier
-		count = 2;
-		String blockTypeIdentifier = readChar(filePointer, count);
+		String blockTypeIdentifier = readChar(2);
 		hdBlock.setBlockTypeIdentifier(blockTypeIdentifier);
-		this.filePointer += count;
 		l.trace("blockTypeIdentifier = " + blockTypeIdentifier);
 
 		// block size
-		int blockSize = readUint16(this.content[this.filePointer], this.content[this.filePointer + 1]);
-		this.filePointer += 2;
+		int blockSize = readUint16();
 		hdBlock.setBlockSize(blockSize);
 		l.trace("blockSize = " + blockSize);
 
@@ -315,46 +311,34 @@ public class MDFInputStream extends FileInputStream {
 		l.trace("numberOfDataGroups = " + numberOfDataGroups);
 
 		// recording start date
-		count = 10;
-		String recordingStartDate = readChar(filePointer, count);
+		String recordingStartDate = readChar(10);
 		hdBlock.setRecordingStartDate(recordingStartDate);
-		this.filePointer += count;
 		l.trace("recordingStartDate = " + recordingStartDate);
 
 		// recording start time
-		count = 8;
-		String recordingStartTime = readChar(filePointer, count);
+		String recordingStartTime = readChar(8);
 		hdBlock.setRecordingStartTime(recordingStartTime);
-		this.filePointer += count;
 		l.trace("recordingStartTime = " + recordingStartTime);
 
 		// authors name
-		count = 32;
-		String authorsName = readChar(filePointer, count);
+		String authorsName = readChar(32);
 		hdBlock.setAuthorsName(authorsName);
-		this.filePointer += count;
 		l.trace("authorsName = " + authorsName);
 
 		// organizations name
-		count = 32;
-		String organizationsName = readChar(filePointer, count);
+		String organizationsName = readChar(32);
 		hdBlock.setOrganizationsName(organizationsName);
-		this.filePointer += count;
 		l.trace("organizationsName = " + organizationsName);
 
 		// projects name
-		count = 32;
-		String projectsName = readChar(filePointer, count);
+		String projectsName = readChar(32);
 		hdBlock.setProjectsName(projectsName);
-		filePointer += count;
 		l.trace("projectsName = " + projectsName);
 
 		// measurement object
-		count = 32;
-		String measurementObject = readChar(this.filePointer, count);
+		String measurementObject = readChar(32);
 		hdBlock.setMeasurementObject(measurementObject);
-		this.filePointer += count;
-		l.trace("measurementObject = " + measurementObject);
+		l.debug("measurementObject = " + measurementObject);
 
 		// recording start timestamp
 		BigInteger recordingStartTimestamp = readUint64(this.content[this.filePointer],
@@ -391,10 +375,8 @@ public class MDFInputStream extends FileInputStream {
 		l.trace("hdBlock.timeQualityClass = " + hdBlock.getTimeQualityClass());
 
 		// timer identification
-		count = 32;
-		String timerIdentification = readChar(this.filePointer, count);
+		String timerIdentification = readChar(32);
 		hdBlock.setTimerIdentification(timerIdentification);
-		this.filePointer += count;
 		l.trace("timerIdentification = " + timerIdentification);
 	}
 
@@ -421,11 +403,12 @@ public class MDFInputStream extends FileInputStream {
 	 *            number of bytes to read
 	 * @return chars read
 	 */
-	private String readChar(int filePointer, int count) {
+	private String readChar(int count) {
 		String result = "";
 		for (int i = filePointer; i < filePointer + count; i++) {
 			result += (char) this.content[i];
 		}
+		filePointer += count;
 		return result;
 	}
 
@@ -435,6 +418,9 @@ public class MDFInputStream extends FileInputStream {
 	 * default byte order (or little endian if default byte order is not set
 	 * yet).
 	 * </p>
+	 * <p>
+	 * Automatically increases {@code filePointer} by 2.
+	 * </p>
 	 * 
 	 * @param filePointer
 	 *            position to start reading
@@ -442,14 +428,16 @@ public class MDFInputStream extends FileInputStream {
 	 * @throws IOException
 	 *             if there is an error reading the uin16
 	 */
-	private int readUint16(int filePointer) throws IOException {
+	private int readUint16() throws IOException {
 		ByteOrder byteOrder;
 		if (this.idBlock == null || idBlock.getDefaultByteOrder() == null) {
 			byteOrder = ByteOrder.LITTLE_ENDIAN;
 		} else {
 			byteOrder = idBlock.getDefaultByteOrder();
 		}
-		return readUint16(this.content[filePointer], this.content[filePointer + 1], byteOrder);
+		int result = readUint16(this.content[filePointer], this.content[filePointer + 1], byteOrder);
+		filePointer += 2;
+		return result;
 	}
 
 	/**
