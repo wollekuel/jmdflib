@@ -269,7 +269,8 @@ public class MDFInputStream extends FileInputStream {
 	 * 
 	 * @throws IOException
 	 */
-	public void readHDBlock() throws IOException {
+	private void readHDBlock() throws IOException {
+		int count;
 		this.filePointer = 64;
 		hdBlock = new HDBlock();
 
@@ -404,12 +405,10 @@ public class MDFInputStream extends FileInputStream {
 		l.trace("hdBlock.timeQualityClass = " + hdBlock.getTimeQualityClass());
 
 		// timer identification
-		String timerIdentification = "";
-		for (int i = this.filePointer; i < this.filePointer + 32; i++) {
-			timerIdentification += (char) this.content[i];
-		}
-		this.filePointer += 32;
+		count = 32;
+		String timerIdentification = readChar(this.filePointer, count);
 		hdBlock.setTimerIdentification(timerIdentification);
+		this.filePointer += count;
 		l.trace("timerIdentification = " + timerIdentification);
 	}
 
@@ -422,6 +421,26 @@ public class MDFInputStream extends FileInputStream {
 	 */
 	public HDBlock getHdBlock() {
 		return hdBlock;
+	}
+
+	/**
+	 * <p>
+	 * Reads one or more chars with {@code count} given bytes starting at
+	 * {@code filePointer}.
+	 * </p>
+	 * 
+	 * @param filePointer
+	 *            position to start reading
+	 * @param count
+	 *            number of bytes to read
+	 * @return chars read
+	 */
+	private String readChar(int filePointer, int count) {
+		String result = "";
+		for (int i = filePointer; i < filePointer + count; i++) {
+			result += (char) this.content[i];
+		}
+		return result;
 	}
 
 	/**
