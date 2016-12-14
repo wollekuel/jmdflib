@@ -323,8 +323,7 @@ public class MDFInputStream extends FileInputStream {
 		l.trace("recordingStartTimestamp = " + recordingStartTimestamp);
 
 		// UTC time offset
-		int utcTimeOffset = readSint16(this.content[this.filePointer], this.content[this.filePointer + 1]);
-		this.filePointer += 2;
+		int utcTimeOffset = readSint16();
 		hdBlock.setUtcTimeOffset(utcTimeOffset);
 		l.trace("utcTimeOffset = " + utcTimeOffset);
 
@@ -451,14 +450,16 @@ public class MDFInputStream extends FileInputStream {
 		return result;
 	}
 
-	private short readSint16(byte byte1, byte byte2) {
+	private short readSint16() {
 		ByteOrder byteOrder;
 		if (this.idBlock == null || idBlock.getDefaultByteOrder() == null) {
 			byteOrder = ByteOrder.LITTLE_ENDIAN;
 		} else {
 			byteOrder = idBlock.getDefaultByteOrder();
 		}
-		return readSint16(byte1, byte2, byteOrder);
+		short result = readSint16(content[filePointer], content[filePointer + 1], byteOrder);
+		filePointer += 2;
+		return result;
 	}
 
 	private static short readSint16(byte byte1, byte byte2, ByteOrder byteOrder) {
