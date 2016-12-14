@@ -257,23 +257,17 @@ public class MDFInputStream extends FileInputStream {
 		l.trace("blockSize = " + blockSize);
 
 		// pointer to first DGBlock
-		long pointerToFirstDGBlock = readUint32(this.content[this.filePointer], this.content[this.filePointer + 1],
-				this.content[this.filePointer + 2], this.content[this.filePointer + 3]);
-		this.filePointer += 4;
+		long pointerToFirstDGBlock = readUint32();
 		hdBlock.setPointerToFirstDGBlock(pointerToFirstDGBlock);
 		l.trace("pointerToFirstDGBlock = " + pointerToFirstDGBlock);
 
 		// pointer to TXBlock (nil allowed)
-		long pointerToTXBlock = readUint32(this.content[this.filePointer], this.content[this.filePointer + 1],
-				this.content[this.filePointer + 2], this.content[this.filePointer + 3]);
-		this.filePointer += 4;
+		long pointerToTXBlock = readUint32();
 		hdBlock.setPointerToTXBlock(pointerToTXBlock);
 		l.trace("pointerToTXBlock = " + pointerToTXBlock);
 
 		// pointer to PRBlock (nil allowed)
-		long pointerToPRBlock = readUint32(this.content[this.filePointer], this.content[this.filePointer + 1],
-				this.content[this.filePointer + 2], this.content[this.filePointer + 3]);
-		this.filePointer += 4;
+		long pointerToPRBlock = readUint32();
 		hdBlock.setPointerToPRBlock(pointerToPRBlock);
 		l.trace("pointerToPRBlock = " + pointerToPRBlock);
 
@@ -475,14 +469,17 @@ public class MDFInputStream extends FileInputStream {
 		return bb.getShort();
 	}
 
-	private long readUint32(byte byte1, byte byte2, byte byte3, byte byte4) throws IOException {
+	private long readUint32() throws IOException {
 		ByteOrder byteOrder;
 		if (this.idBlock == null || idBlock.getDefaultByteOrder() == null) {
 			byteOrder = ByteOrder.LITTLE_ENDIAN;
 		} else {
 			byteOrder = idBlock.getDefaultByteOrder();
 		}
-		return readUint32(byte1, byte2, byte3, byte4, byteOrder);
+		long result = readUint32(content[filePointer], content[filePointer + 1], content[filePointer + 2],
+				content[filePointer + 3], byteOrder);
+		filePointer += 4;
+		return result;
 	}
 
 	private static long readUint32(byte byte1, byte byte2, byte byte3, byte byte4, ByteOrder byteOrder)
