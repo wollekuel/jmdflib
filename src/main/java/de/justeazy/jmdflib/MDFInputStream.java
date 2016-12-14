@@ -413,30 +413,6 @@ public class MDFInputStream extends FileInputStream {
 
 	/**
 	 * <p>
-	 * Reads a uint16 from two bytes with default byte order (or little endian
-	 * if default byte order is not set yet).
-	 * </p>
-	 * 
-	 * @param byte1
-	 *            first byte
-	 * @param byte2
-	 *            second byte
-	 * @return uint16
-	 * @throws IOException
-	 *             if there is an error reading the uint16
-	 */
-	private int readUint16(byte byte1, byte byte2) throws IOException {
-		ByteOrder byteOrder;
-		if (this.idBlock == null || idBlock.getDefaultByteOrder() == null) {
-			byteOrder = ByteOrder.LITTLE_ENDIAN;
-		} else {
-			byteOrder = idBlock.getDefaultByteOrder();
-		}
-		return readUint16(byte1, byte2, byteOrder);
-	}
-
-	/**
-	 * <p>
 	 * Reads a uint16 from two bytes.
 	 * </p>
 	 * 
