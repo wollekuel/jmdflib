@@ -13,6 +13,8 @@ import org.apache.logging.log4j.Logger;
 
 import de.justeazy.jmdflib.blocktypes.HDBlock;
 import de.justeazy.jmdflib.blocktypes.IDBlock;
+import de.justeazy.jmdflib.blocktypes.TXBlock;
+
 import java.nio.ByteOrder;
 import de.justeazy.jmdflib.enums.FloatingPointFormat;
 import de.justeazy.jmdflib.enums.TimeQualityClass;
@@ -65,6 +67,11 @@ public class MDFInputStream extends FileInputStream {
 	 * HDBlock
 	 */
 	private HDBlock hdBlock;
+
+	/**
+	 * TXBlock
+	 */
+	private TXBlock txBlock;
 
 	/**
 	 * <p>
@@ -125,6 +132,7 @@ public class MDFInputStream extends FileInputStream {
 	private void processFile() throws IOException {
 		readIDBlock();
 		readHDBlock();
+		readTXBlock();
 	}
 
 	/**
@@ -231,7 +239,7 @@ public class MDFInputStream extends FileInputStream {
 	 * 
 	 * @return IDBlock
 	 */
-	public IDBlock getIdBlock() {
+	public IDBlock getIDBlock() {
 		return idBlock;
 	}
 
@@ -248,6 +256,10 @@ public class MDFInputStream extends FileInputStream {
 
 		// block type identifier
 		String blockTypeIdentifier = readChar(2);
+		if (!blockTypeIdentifier.equals("HD")) {
+			throw new IOException(
+					"Wrong block type identifier (should be \"HD\", but was " + blockTypeIdentifier + "\").");
+		}
 		hdBlock.setBlockTypeIdentifier(blockTypeIdentifier);
 		l.trace("blockTypeIdentifier = " + blockTypeIdentifier);
 
@@ -269,7 +281,7 @@ public class MDFInputStream extends FileInputStream {
 		// pointer to PRBlock (nil allowed)
 		long pointerToPRBlock = readUint32();
 		hdBlock.setPointerToPRBlock(pointerToPRBlock);
-		l.trace("pointerToPRBlock = " + pointerToPRBlock);
+		l.trace("pointerToPRBlock = \"" + pointerToPRBlock + "\"");
 
 		// number of data groups
 		int numberOfDataGroups = readUint16();
@@ -346,8 +358,57 @@ public class MDFInputStream extends FileInputStream {
 	 * 
 	 * @return HDBlock
 	 */
-	public HDBlock getHdBlock() {
+	public HDBlock getHDBlock() {
 		return hdBlock;
+	}
+
+	/**
+	 * <p>
+	 * Reads the optional comment for the measured data file.
+	 * </p>
+	 * 
+	 * @throws IOException
+	 */
+	private void readTXBlock() throws IOException {
+		if (hdBlock.getPointerToTXBlock() != 0) {
+			txBlock = new TXBlock();
+			this.filePointer = (int) hdBlock.getPointerToTXBlock();
+
+			String blockTypeIdentifier = readChar(2);
+			if (!blockTypeIdentifier.equals("TX")) {
+				throw new IOException(
+						"Wrong block type identifier (should be \"TX\", but was \"" + blockTypeIdentifier + "\").");
+			}
+			txBlock.setBlockTypeIdentifier(blockTypeIdentifier);
+			l.trace("blockTypeIdentifier = " + blockTypeIdentifier);
+
+			int blockSize = readUint16();
+			txBlock.setBlockSize(blockSize);
+			l.trace("blockSize = " + blockSize);
+
+			String text = "";
+			for (int i = filePointer; i < filePointer + blockSize - 3; i++) {
+				if (content[i] == 0x00) {
+					break;
+				}
+				text += (char) content[i];
+			}
+			txBlock.setText(text);
+			l.trace("text = " + text);
+		} else {
+			txBlock = null;
+		}
+	}
+
+	/**
+	 * <p>
+	 * Returns the TXBlock.
+	 * </p>
+	 * 
+	 * @return TXBlock
+	 */
+	public TXBlock getTXBlock() {
+		return txBlock;
 	}
 
 	/**

@@ -7,6 +7,8 @@ import java.math.BigInteger;
 
 import de.justeazy.jmdflib.blocktypes.HDBlock;
 import de.justeazy.jmdflib.blocktypes.IDBlock;
+import de.justeazy.jmdflib.blocktypes.TXBlock;
+
 import java.nio.ByteOrder;
 import de.justeazy.jmdflib.enums.FloatingPointFormat;
 import de.justeazy.jmdflib.enums.TimeQualityClass;
@@ -40,7 +42,7 @@ public class MDFInputStreamTest extends TestCase {
 	}
 
 	public void testIdBlock() throws Exception {
-		IDBlock idBlock = is.getIdBlock();
+		IDBlock idBlock = is.getIDBlock();
 		assertThat(idBlock.getFileIdentifier()).isEqualTo("MDF     ");
 		assertThat(idBlock.getFormatIdentifier()).isEqualTo("3.30    ");
 		assertThat(idBlock.getProgramIdentifier()).isEqualTo("MDA v7.1");
@@ -57,7 +59,7 @@ public class MDFInputStreamTest extends TestCase {
 	}
 
 	public void testHdBlock() throws Exception {
-		HDBlock hdBlock = is.getHdBlock();
+		HDBlock hdBlock = is.getHDBlock();
 		assertThat(hdBlock.getBlockTypeIdentifier()).isEqualTo("HD");
 		assertThat(hdBlock.getBlockSize()).isEqualTo(208);
 		assertThat(hdBlock.getPointerToFirstDGBlock()).isEqualTo(1188);
@@ -79,6 +81,13 @@ public class MDFInputStreamTest extends TestCase {
 		assertThat(hdBlock.getTimeQualityClass()).isEqualTo(TimeQualityClass.LOCAL_PC_REFERENCE_TIME);
 		assertThat(hdBlock.getTimerIdentification().length()).isEqualTo(32);
 		assertThat(hdBlock.getTimerIdentification().trim()).isEqualTo("0");
+	}
+
+	public void testTxBlock() throws Exception {
+		TXBlock txBlock = is.getTXBlock();
+		assertThat(txBlock.getBlockTypeIdentifier()).isEqualTo("TX");
+		assertThat(txBlock.getBlockSize()).isEqualTo(5);
+		assertThat(txBlock.getText()).isEmpty();
 	}
 
 }
