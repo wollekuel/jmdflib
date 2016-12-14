@@ -307,12 +307,7 @@ public class MDFInputStream extends FileInputStream {
 		l.trace("measurementObject = " + measurementObject);
 
 		// recording start timestamp
-		BigInteger recordingStartTimestamp = readUint64(this.content[this.filePointer],
-				this.content[this.filePointer + 1], this.content[this.filePointer + 2],
-				this.content[this.filePointer + 3], this.content[this.filePointer + 4],
-				this.content[this.filePointer + 5], this.content[this.filePointer + 6],
-				this.content[this.filePointer + 7]);
-		this.filePointer += 8;
+		BigInteger recordingStartTimestamp = readUint64();
 		hdBlock.setRecordingStartTimestamp(recordingStartTimestamp);
 		l.trace("recordingStartTimestamp = " + recordingStartTimestamp);
 
@@ -503,15 +498,18 @@ public class MDFInputStream extends FileInputStream {
 		}
 	}
 
-	private BigInteger readUint64(byte byte1, byte byte2, byte byte3, byte byte4, byte byte5, byte byte6, byte byte7,
-			byte byte8) throws IOException {
+	private BigInteger readUint64() throws IOException {
 		ByteOrder byteOrder;
 		if (this.idBlock == null || idBlock.getDefaultByteOrder() == null) {
 			byteOrder = ByteOrder.LITTLE_ENDIAN;
 		} else {
 			byteOrder = idBlock.getDefaultByteOrder();
 		}
-		return readUint64(byte1, byte2, byte3, byte4, byte5, byte6, byte7, byte8, byteOrder);
+		BigInteger result = readUint64(content[filePointer], content[filePointer + 1], content[filePointer + 2],
+				content[filePointer + 3], content[filePointer + 4], content[filePointer + 5], content[filePointer + 6],
+				content[filePointer + 7], byteOrder);
+		filePointer += 8;
+		return result;
 	}
 
 	private static BigInteger readUint64(byte byte1, byte byte2, byte byte3, byte byte4, byte byte5, byte byte6,
