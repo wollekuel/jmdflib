@@ -10,6 +10,7 @@ I'm using Vector's specification document for version 3.1.1, accessible from the
 
 * IDBlock
 * HDBlock
+* TXBlock
 
 ### Missing block types
 
