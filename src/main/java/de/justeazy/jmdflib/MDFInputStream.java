@@ -140,11 +140,7 @@ public class MDFInputStream extends FileInputStream {
 		idBlock = new IDBlock();
 
 		// file identifier
-		String fileIdentifier = "";
-		for (int i = 0; i < 8; i++) {
-			fileIdentifier += (char) this.content[i];
-		}
-		this.filePointer += 8;
+		String fileIdentifier = readChar(8);
 		if (!fileIdentifier.equals("MDF     ")) {
 			throw new IOException("Wrong file identifier (should be \"MDF     \", but was \"" + fileIdentifier + "\")");
 		}
@@ -152,11 +148,7 @@ public class MDFInputStream extends FileInputStream {
 		l.trace("fileIdentifier = " + fileIdentifier);
 
 		// format identifier
-		String formatIdentifier = "";
-		for (int i = this.filePointer; i < (this.filePointer + 8); i++) {
-			formatIdentifier += (char) this.content[i];
-		}
-		this.filePointer += 8;
+		String formatIdentifier = readChar(8);
 		Pattern pFormatIdentifier = Pattern.compile("\\d+\\x2E\\d{2}\\s{4}");
 		m = pFormatIdentifier.matcher(formatIdentifier);
 		if (!m.find()) {
@@ -166,18 +158,12 @@ public class MDFInputStream extends FileInputStream {
 		l.trace("formatIdentifier = \"" + formatIdentifier + "\"");
 
 		// program identifier
-		String programIdentifier = "";
-		for (int i = this.filePointer; i < (this.filePointer + 8); i++) {
-			programIdentifier += (char) this.content[i];
-		}
-		this.filePointer += 8;
+		String programIdentifier = readChar(8);
 		idBlock.setProgramIdentifier(programIdentifier);
 		l.trace("programIdentifier = \"" + programIdentifier + "\"");
 
 		// default byte order
-		ByteOrder defaultByteOrder = readUint16(this.content[this.filePointer], this.content[this.filePointer + 1]) == 0
-				? ByteOrder.LITTLE_ENDIAN : ByteOrder.BIG_ENDIAN;
-		this.filePointer += 2;
+		ByteOrder defaultByteOrder = readUint16() == 0 ? ByteOrder.LITTLE_ENDIAN : ByteOrder.BIG_ENDIAN;
 		idBlock.setDefaultByteOrder(defaultByteOrder);
 		l.trace("defaultByteOrder = " + defaultByteOrder);
 		if (defaultByteOrder != ByteOrder.LITTLE_ENDIAN) {
@@ -186,8 +172,7 @@ public class MDFInputStream extends FileInputStream {
 		}
 
 		// default floating point format
-		int floatingPointFormat = readUint16(this.content[this.filePointer], this.content[this.filePointer + 1]);
-		this.filePointer += 2;
+		int floatingPointFormat = readUint16();
 		switch (floatingPointFormat) {
 		case 0:
 			idBlock.setDefaultFloatingPointFormat(FloatingPointFormat.IEEE_754);
@@ -201,38 +186,27 @@ public class MDFInputStream extends FileInputStream {
 		l.trace("idBlock.defaultFloatingPointFormat = " + idBlock.getDefaultFloatingPointFormat());
 
 		// version number
-		int versionNumber = readUint16(this.content[this.filePointer], this.content[this.filePointer + 1]);
-		this.filePointer += 2;
+		int versionNumber = readUint16();
 		idBlock.setVersionNumber(versionNumber);
 		l.trace("versionNumber = " + versionNumber);
 
 		// code page
-		int codePage = readUint16(this.content[this.filePointer], this.content[this.filePointer + 1]);
-		this.filePointer += 2;
+		int codePage = readUint16();
 		idBlock.setCodePage(codePage);
 		l.trace("codePage = " + codePage);
 
 		// first reserved structure
-		String reservedStructure1 = "";
-		for (int i = this.filePointer; i < this.filePointer + 2; i++) {
-			reservedStructure1 += (char) this.content[i];
-		}
-		this.filePointer += 2;
+		String reservedStructure1 = readChar(2);
 		idBlock.setReservedStructure1(reservedStructure1);
 		l.trace("reservedStructure1 = \"" + reservedStructure1 + "\"");
 
 		// second reserved structure
-		String reservedStructure2 = "";
-		for (int i = this.filePointer; i < this.filePointer + 26; i++) {
-			reservedStructure2 += (char) this.content[i];
-		}
-		this.filePointer += 26;
+		String reservedStructure2 = readChar(26);
 		idBlock.setReservedStructure2(reservedStructure2);
 		l.trace("reservedStructure2 = \"" + reservedStructure2 + "\"");
 
 		// standard flags for unfinalized mdfs
-		int standardFlags = readUint16(this.content[this.filePointer], this.content[this.filePointer + 1]);
-		this.filePointer += 2;
+		int standardFlags = readUint16();
 		idBlock.setStandardFlags(standardFlags);
 		l.trace("standardFlags = " + standardFlags);
 		if (standardFlags != 0) {
@@ -241,8 +215,7 @@ public class MDFInputStream extends FileInputStream {
 		}
 
 		// custom flags for unfinalized mdfs
-		int customFlags = readUint16(this.content[this.filePointer], this.content[this.filePointer + 1]);
-		this.filePointer += 2;
+		int customFlags = readUint16();
 		idBlock.setCustomFlags(customFlags);
 		l.trace("customFlags = " + customFlags);
 		if (customFlags != 0) {
