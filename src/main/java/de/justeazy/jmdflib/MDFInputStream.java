@@ -305,8 +305,7 @@ public class MDFInputStream extends FileInputStream {
 		l.trace("pointerToPRBlock = " + pointerToPRBlock);
 
 		// number of data groups
-		int numberOfDataGroups = readUint16(this.content[this.filePointer], this.content[this.filePointer + 1]);
-		this.filePointer += 2;
+		int numberOfDataGroups = readUint16();
 		hdBlock.setNumberOfDataGroups(numberOfDataGroups);
 		l.trace("numberOfDataGroups = " + numberOfDataGroups);
 
@@ -338,7 +337,7 @@ public class MDFInputStream extends FileInputStream {
 		// measurement object
 		String measurementObject = readChar(32);
 		hdBlock.setMeasurementObject(measurementObject);
-		l.debug("measurementObject = " + measurementObject);
+		l.trace("measurementObject = " + measurementObject);
 
 		// recording start timestamp
 		BigInteger recordingStartTimestamp = readUint64(this.content[this.filePointer],
@@ -357,8 +356,7 @@ public class MDFInputStream extends FileInputStream {
 		l.trace("utcTimeOffset = " + utcTimeOffset);
 
 		// time quality class
-		int timeQualityClass = readUint16(this.content[this.filePointer], this.content[this.filePointer + 1]);
-		this.filePointer += 2;
+		int timeQualityClass = readUint16();
 		switch (timeQualityClass) {
 		case 0:
 			hdBlock.setTimeQualityClass(TimeQualityClass.LOCAL_PC_REFERENCE_TIME);
