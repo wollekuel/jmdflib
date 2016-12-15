@@ -16,6 +16,7 @@ import de.justeazy.jmdflib.blocktypes.DGBlock;
 import de.justeazy.jmdflib.blocktypes.HDBlock;
 import de.justeazy.jmdflib.blocktypes.IDBlock;
 import de.justeazy.jmdflib.blocktypes.PRBlock;
+import de.justeazy.jmdflib.blocktypes.TRBlock;
 import de.justeazy.jmdflib.blocktypes.TXBlock;
 
 import java.nio.ByteOrder;
@@ -513,7 +514,19 @@ public class MDFInputStream extends FileInputStream {
 				dgBlock.setReserved(reserved);
 				l.trace("reserved = " + reserved);
 
+				// set file pointer to TRBlock and read it
+				if (dgBlock.getPointerToTRBlock() != 0) {
+					filePointer = (int) dgBlock.getPointerToTRBlock();
+					dgBlock.setTRBlock(readTRBlock());
+				} else {
+					dgBlock.setTRBlock(null);
+				}
+
+				// TODO set file pointer to first CGBlock and read it
+
 				dgBlocks.add(dgBlock);
+
+				// TODO set file pointer to next DGBlock if there is one
 			} while (dgBlock.getPointerToNextDGBlock() != 0);
 		} else {
 			dgBlocks = null;
@@ -529,6 +542,20 @@ public class MDFInputStream extends FileInputStream {
 	 */
 	public ArrayList<DGBlock> getDGBlocks() {
 		return dgBlocks;
+	}
+
+	private TRBlock readTRBlock() throws IOException {
+		TRBlock trBlock = new TRBlock();
+
+		String blockTypeIdentifier = readChar(2);
+		if (!blockTypeIdentifier.equals("TR")) {
+			throw new IOException(
+					"Wrong block type identifier (should be \"TR\", but was \"" + blockTypeIdentifier + "\").");
+		}
+		trBlock.setBlockTypeIdentifier(blockTypeIdentifier);
+		l.debug("blockTypeIdentifier = " + blockTypeIdentifier);
+
+		return trBlock;
 	}
 
 	/**

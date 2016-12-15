@@ -107,6 +107,8 @@ public class MDFInputStreamTest extends TestCase {
 		assertThat(dgBlock.getNumberOfChannelGroups()).isEqualTo(1);
 		assertThat(dgBlock.getNumberOfRecordIDs()).isEqualTo(NumberOfRecordIDs.DATA_RECORDS_WITHOUT_RECORD_ID);
 		assertThat(dgBlock.getReserved()).isEqualTo(0);
+
+		assertThat(dgBlock.getTRBlock()).isNull();
 	}
 
 }

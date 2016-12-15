@@ -13,6 +13,8 @@ public class DGBlock {
 	private long pointerToFirstCGBlock;
 
 	private long pointerToTRBlock;
+	
+	private TRBlock trBlock;
 
 	private long pointerToDataBlock;
 
@@ -92,6 +94,14 @@ public class DGBlock {
 
 	public void setReserved(long reserved) {
 		this.reserved = reserved;
+	}
+
+	public TRBlock getTRBlock() {
+		return trBlock;
+	}
+
+	public void setTRBlock(TRBlock trBlock) {
+		this.trBlock = trBlock;
 	}
 
 }

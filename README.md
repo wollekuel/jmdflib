@@ -29,3 +29,4 @@ I'm using Vector's specification document for version 3.1.1, accessible from the
 * Floating-point format compliant with G_Float or D_Float
 * PRBlock
 * Number of Record IDs > 0
+* TRBlock (only preparation exists)
