@@ -5,12 +5,14 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import de.justeazy.jmdflib.blocktypes.DGBlock;
 import de.justeazy.jmdflib.blocktypes.HDBlock;
 import de.justeazy.jmdflib.blocktypes.IDBlock;
 import de.justeazy.jmdflib.blocktypes.PRBlock;
@@ -18,6 +20,7 @@ import de.justeazy.jmdflib.blocktypes.TXBlock;
 
 import java.nio.ByteOrder;
 import de.justeazy.jmdflib.enums.FloatingPointFormat;
+import de.justeazy.jmdflib.enums.NumberOfRecordIDs;
 import de.justeazy.jmdflib.enums.TimeQualityClass;
 
 /**
@@ -80,6 +83,11 @@ public class MDFInputStream extends FileInputStream {
 	private PRBlock prBlock;
 
 	/**
+	 * DGBlocks
+	 */
+	private ArrayList<DGBlock> dgBlocks;
+
+	/**
 	 * <p>
 	 * A {@code MDFInputStream} reads MDF files by means of a
 	 * {@link FileInputStream}.
@@ -140,6 +148,7 @@ public class MDFInputStream extends FileInputStream {
 		readHDBlock();
 		readTXBlock();
 		readPRBlock();
+		readDGBlocks();
 	}
 
 	/**
@@ -288,7 +297,7 @@ public class MDFInputStream extends FileInputStream {
 		// pointer to PRBlock (nil allowed)
 		long pointerToPRBlock = readUint32();
 		hdBlock.setPointerToPRBlock(pointerToPRBlock);
-		l.debug("pointerToPRBlock = \"" + pointerToPRBlock + "\"");
+		l.trace("pointerToPRBlock = \"" + pointerToPRBlock + "\"");
 
 		// number of data groups
 		int numberOfDataGroups = readUint16();
@@ -433,6 +442,93 @@ public class MDFInputStream extends FileInputStream {
 		} else {
 			prBlock = null;
 		}
+	}
+
+	/**
+	 * <p>
+	 * Returns the PRBlock.
+	 * </p>
+	 * 
+	 * @return PRBlock
+	 */
+	public PRBlock getPRBlock() {
+		return prBlock;
+	}
+
+	/**
+	 * 
+	 * @throws IOException
+	 */
+	private void readDGBlocks() throws IOException {
+		if (hdBlock.getPointerToFirstDGBlock() != 0) {
+			this.filePointer = (int) hdBlock.getPointerToFirstDGBlock();
+			dgBlocks = new ArrayList<DGBlock>();
+
+			DGBlock dgBlock;
+			do {
+				dgBlock = new DGBlock();
+
+				String blockTypeIdentifier = readChar(2);
+				if (!blockTypeIdentifier.equals("DG")) {
+					throw new IOException(
+							"Wrong block type identifier (should be\"DG\", but was \"" + blockTypeIdentifier + "\").");
+				}
+				dgBlock.setBlockTypeIdentifier(blockTypeIdentifier);
+				l.trace("blockTypeIdentifier = " + blockTypeIdentifier);
+
+				int blockSize = readUint16();
+				dgBlock.setBlockSize(blockSize);
+				l.trace("blockSize = " + blockSize);
+
+				long pointerToNextDGBlock = readUint32();
+				dgBlock.setPointerToNextDGBlock(pointerToNextDGBlock);
+				l.trace("pointerToNextDGBlock = " + pointerToNextDGBlock);
+
+				long pointerToFirstCGBlock = readUint32();
+				dgBlock.setPointerToFirstCGBlock(pointerToFirstCGBlock);
+				l.trace("pointerToFirstCGBlock = " + pointerToFirstCGBlock);
+
+				long pointerToTRBlock = readUint32();
+				dgBlock.setPointerToTRBlock(pointerToTRBlock);
+				l.trace("pointerToTRBlock = " + pointerToTRBlock);
+
+				long pointerToDataBlock = readUint32();
+				dgBlock.setPointerToDataBlock(pointerToDataBlock);
+				l.trace("pointerToDGBlock = " + pointerToDataBlock);
+
+				int numberOfChannelGroups = readUint16();
+				dgBlock.setNumberOfChannelGroups(numberOfChannelGroups);
+				l.trace("numberOfChannelGroups = " + numberOfChannelGroups);
+
+				int numberOfRecordIDs = readUint16();
+				if (numberOfRecordIDs == 0) {
+					dgBlock.setNumberOfRecordIDs(NumberOfRecordIDs.DATA_RECORDS_WITHOUT_RECORD_ID);
+				} else {
+					throw new IOException("Wrong number of record IDs (should be \"0\", but was \"" + numberOfRecordIDs
+							+ "\"). Not implemented yet.");
+				}
+				l.trace("dgBlock.numberOfRecordIDs = " + dgBlock.getNumberOfRecordIDs());
+
+				long reserved = readUint32();
+				dgBlock.setReserved(reserved);
+				l.trace("reserved = " + reserved);
+
+				dgBlocks.add(dgBlock);
+			} while (dgBlock.getPointerToNextDGBlock() != 0);
+		} else {
+			dgBlocks = null;
+		}
+	}
+
+	/**
+	 * <p>
+	 * Returns the DGBlocks.
+	 * </p>
+	 * 
+	 * @return List of DGBlocks
+	 */
+	public ArrayList<DGBlock> getDGBlocks() {
+		return dgBlocks;
 	}
 
 	/**

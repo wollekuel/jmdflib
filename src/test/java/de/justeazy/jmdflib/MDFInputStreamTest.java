@@ -5,12 +5,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.File;
 import java.math.BigInteger;
 
+import de.justeazy.jmdflib.blocktypes.DGBlock;
 import de.justeazy.jmdflib.blocktypes.HDBlock;
 import de.justeazy.jmdflib.blocktypes.IDBlock;
 import de.justeazy.jmdflib.blocktypes.TXBlock;
 
 import java.nio.ByteOrder;
+import java.util.ArrayList;
+
 import de.justeazy.jmdflib.enums.FloatingPointFormat;
+import de.justeazy.jmdflib.enums.NumberOfRecordIDs;
 import de.justeazy.jmdflib.enums.TimeQualityClass;
 import junit.framework.TestCase;
 
@@ -88,6 +92,21 @@ public class MDFInputStreamTest extends TestCase {
 		assertThat(txBlock.getBlockTypeIdentifier()).isEqualTo("TX");
 		assertThat(txBlock.getBlockSize()).isEqualTo(5);
 		assertThat(txBlock.getText()).isEmpty();
+	}
+
+	public void testDgBlocks() throws Exception {
+		ArrayList<DGBlock> dgBlocks = is.getDGBlocks();
+		assertThat(dgBlocks).hasSize(1);
+		DGBlock dgBlock = dgBlocks.get(0);
+		assertThat(dgBlock.getBlockTypeIdentifier()).isEqualTo("DG");
+		assertThat(dgBlock.getBlockSize()).isEqualTo(28);
+		assertThat(dgBlock.getPointerToNextDGBlock()).isEqualTo(0);
+		assertThat(dgBlock.getPointerToFirstCGBlock()).isEqualTo(1158);
+		assertThat(dgBlock.getPointerToTRBlock()).isEqualTo(0);
+		assertThat(dgBlock.getPointerToDataBlock()).isEqualTo(1216);
+		assertThat(dgBlock.getNumberOfChannelGroups()).isEqualTo(1);
+		assertThat(dgBlock.getNumberOfRecordIDs()).isEqualTo(NumberOfRecordIDs.DATA_RECORDS_WITHOUT_RECORD_ID);
+		assertThat(dgBlock.getReserved()).isEqualTo(0);
 	}
 
 }

@@ -11,6 +11,11 @@ I'm using Vector's specification document for version 3.1.1, accessible from the
 * IDBlock
 * HDBlock
 * TXBlock
+* DGBlock
+
+#### Not tested
+
+* More than one DGBlock
 
 ### Missing block types
 
@@ -22,3 +27,5 @@ I'm using Vector's specification document for version 3.1.1, accessible from the
 * Unfinalized MDF files
 * Big Endian byte order
 * Floating-point format compliant with G_Float or D_Float
+* PRBlock
+* Number of Record IDs > 0
