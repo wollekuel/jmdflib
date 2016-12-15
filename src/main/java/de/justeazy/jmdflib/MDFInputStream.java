@@ -13,6 +13,7 @@ import org.apache.logging.log4j.Logger;
 
 import de.justeazy.jmdflib.blocktypes.HDBlock;
 import de.justeazy.jmdflib.blocktypes.IDBlock;
+import de.justeazy.jmdflib.blocktypes.PRBlock;
 import de.justeazy.jmdflib.blocktypes.TXBlock;
 
 import java.nio.ByteOrder;
@@ -74,6 +75,11 @@ public class MDFInputStream extends FileInputStream {
 	private TXBlock txBlock;
 
 	/**
+	 * PRBlock
+	 */
+	private PRBlock prBlock;
+
+	/**
 	 * <p>
 	 * A {@code MDFInputStream} reads MDF files by means of a
 	 * {@link FileInputStream}.
@@ -133,6 +139,7 @@ public class MDFInputStream extends FileInputStream {
 		readIDBlock();
 		readHDBlock();
 		readTXBlock();
+		readPRBlock();
 	}
 
 	/**
@@ -281,7 +288,7 @@ public class MDFInputStream extends FileInputStream {
 		// pointer to PRBlock (nil allowed)
 		long pointerToPRBlock = readUint32();
 		hdBlock.setPointerToPRBlock(pointerToPRBlock);
-		l.trace("pointerToPRBlock = \"" + pointerToPRBlock + "\"");
+		l.debug("pointerToPRBlock = \"" + pointerToPRBlock + "\"");
 
 		// number of data groups
 		int numberOfDataGroups = readUint16();
@@ -409,6 +416,23 @@ public class MDFInputStream extends FileInputStream {
 	 */
 	public TXBlock getTXBlock() {
 		return txBlock;
+	}
+
+	/**
+	 * <p>
+	 * Reads the optional non-standardized data to exchange between the
+	 * acquisition program and the evaluation program.
+	 * </p>
+	 * 
+	 * @throws IOException
+	 */
+	private void readPRBlock() throws IOException {
+		if (hdBlock.getPointerToPRBlock() != 0) {
+			prBlock = new PRBlock();
+			throw new IOException("Since there weren't any PRBlocks in the test files, this is not implemented yet.");
+		} else {
+			prBlock = null;
+		}
 	}
 
 	/**
