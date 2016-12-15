@@ -13,6 +13,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import de.justeazy.jmdflib.blocktypes.CGBlock;
+import de.justeazy.jmdflib.blocktypes.CNBlock;
 import de.justeazy.jmdflib.blocktypes.DGBlock;
 import de.justeazy.jmdflib.blocktypes.HDBlock;
 import de.justeazy.jmdflib.blocktypes.IDBlock;
@@ -21,8 +22,11 @@ import de.justeazy.jmdflib.blocktypes.TRBlock;
 import de.justeazy.jmdflib.blocktypes.TXBlock;
 
 import java.nio.ByteOrder;
+
+import de.justeazy.jmdflib.enums.ChannelType;
 import de.justeazy.jmdflib.enums.FloatingPointFormat;
 import de.justeazy.jmdflib.enums.NumberOfRecordIDs;
+import de.justeazy.jmdflib.enums.SignalDataType;
 import de.justeazy.jmdflib.enums.TimeQualityClass;
 
 /**
@@ -612,7 +616,154 @@ public class MDFInputStream extends FileInputStream {
 		cgBlock.setPointerToFirstSRBlock(pointerToFirstSRBlock);
 		l.trace("pointerToFirstSRBlock = " + pointerToFirstSRBlock);
 
+		ArrayList<CNBlock> cnBlocks;
+		if (cgBlock.getPointerToFirstCNBlock() != 0) {
+			this.filePointer = (int) cgBlock.getPointerToFirstCNBlock();
+			cnBlocks = new ArrayList<CNBlock>();
+
+			CNBlock cnBlock;
+			do {
+				cnBlock = readCNBlock();
+				cnBlocks.add(cnBlock);
+				this.filePointer = (int) cnBlock.getPointerToNextCNBlock();
+			} while (cnBlock.getPointerToNextCNBlock() != 0);
+		} else {
+			cnBlocks = null;
+		}
+		cgBlock.setCNBlocks(cnBlocks);
+
 		return cgBlock;
+	}
+
+	private CNBlock readCNBlock() throws IOException {
+		CNBlock cnBlock = new CNBlock();
+
+		String blockTypeIdentifier = readChar(2);
+		if (!blockTypeIdentifier.equals("CN")) {
+			throw new IOException(
+					"Wrong block type identifier (should be \"CN\", but was \"" + blockTypeIdentifier + "\").");
+		}
+		cnBlock.setBlockTypeIdentifier(blockTypeIdentifier);
+		l.trace("blockTypeIdentifier = " + blockTypeIdentifier);
+
+		int blockSize = readUint16();
+		cnBlock.setBlockSize(blockSize);
+		l.trace("blockSize = " + blockSize);
+
+		long pointerToNextCNBlock = readUint32();
+		cnBlock.setPointerToNextCNBlock(pointerToNextCNBlock);
+		l.trace("pointerToNextCNBlock = " + pointerToNextCNBlock);
+
+		long pointerToCCBlock = readUint32();
+		cnBlock.setPointerToCCBlock(pointerToCCBlock);
+		l.trace("pointerToCCBlock = " + pointerToCCBlock);
+
+		long pointerToCEBlock = readUint32();
+		cnBlock.setPointerToCEBlock(pointerToCEBlock);
+		l.trace("pointerToCEBlock = " + pointerToCEBlock);
+
+		long pointerToCDBlock = readUint32();
+		cnBlock.setPointerToCDBlock(pointerToCDBlock);
+		l.trace("pointerToCDBlock = " + pointerToCDBlock);
+
+		long pointerToTXBlock = readUint32();
+		cnBlock.setPointerToTXBlock(pointerToTXBlock);
+		l.trace("pointerToTXBlock = " + pointerToTXBlock);
+
+		int channelType = readUint16();
+		if (channelType == 1) {
+			cnBlock.setChannelType(ChannelType.TIME_CHANNEL);
+		} else {
+			cnBlock.setChannelType(ChannelType.DATA_CHANNEL);
+		}
+		l.trace("cnBlock.channelType = " + cnBlock.getChannelType());
+
+		String shortSignalName = readChar(32);
+		cnBlock.setShortSignalName(shortSignalName);
+		l.trace("shortSignalName = " + shortSignalName);
+
+		String signalDescription = readChar(128);
+		cnBlock.setSignalDescription(signalDescription);
+		l.trace("signalDescription = \"" + signalDescription + "\"");
+
+		int startOffsetInBits = readUint16();
+		cnBlock.setStartOffsetInBits(startOffsetInBits);
+		l.trace("startOffsetInBits = " + startOffsetInBits);
+
+		int numberOfBits = readUint16();
+		cnBlock.setNumberOfBits(numberOfBits);
+		l.trace("numberOfBits = " + numberOfBits);
+
+		int signalDataType = readUint16();
+		switch (signalDataType) {
+		case 0:
+			cnBlock.setSignalDataType(SignalDataType.UNSIGNED_INTEGER);
+			break;
+		case 1:
+			cnBlock.setSignalDataType(SignalDataType.SIGNED_INTEGER);
+			break;
+		case 2:
+			cnBlock.setSignalDataType(SignalDataType.IEEE_754_FLOATING_POINT_FORMAT_FLOAT);
+			break;
+		case 3:
+			cnBlock.setSignalDataType(SignalDataType.IEEE_754_FLOATING_POINT_FORMAT_DOUBLE);
+			break;
+		case 4:
+			cnBlock.setSignalDataType(SignalDataType.VAX_FLOATING_POINT_FORMAT_F_FLOAT);
+			break;
+		case 5:
+			cnBlock.setSignalDataType(SignalDataType.VAX_FLOATING_POINT_FORMAT_G_FLOAT);
+			break;
+		case 6:
+			cnBlock.setSignalDataType(SignalDataType.VAX_FLOATING_POINT_FORMAT_D_FLOAT);
+			break;
+		case 7:
+			cnBlock.setSignalDataType(SignalDataType.STRING);
+			break;
+		case 8:
+			cnBlock.setSignalDataType(SignalDataType.BYTE_ARRAY);
+			break;
+		case 9:
+			cnBlock.setSignalDataType(SignalDataType.UNSIGNED_INTEGER_BIG_ENDIAN);
+			break;
+		case 10:
+			cnBlock.setSignalDataType(SignalDataType.SIGNED_INTEGER_BIG_ENDIAN);
+			break;
+		case 11:
+			cnBlock.setSignalDataType(SignalDataType.IEEE_754_FLOATING_POINT_FORMAT_FLOAT_BIG_ENDIAN);
+			break;
+		case 12:
+			cnBlock.setSignalDataType(SignalDataType.IEEE_754_FLOATING_POINT_FORMAT_DOUBLE_BIG_ENDIAN);
+			break;
+		case 13:
+			cnBlock.setSignalDataType(SignalDataType.UNSIGNED_INTEGER_LITTLE_ENDIAN);
+			break;
+		case 14:
+			cnBlock.setSignalDataType(SignalDataType.SIGNED_INTEGER_LITTLE_ENDIAN);
+			break;
+		case 15:
+			cnBlock.setSignalDataType(SignalDataType.IEEE_754_FLOATING_POINT_FORMAT_FLOAT_LITTLE_ENDIAN);
+			break;
+		case 16:
+			cnBlock.setSignalDataType(SignalDataType.IEEE_754_FLOATING_POINT_FORMAT_DOUBLE_LITTLE_ENDIAN);
+			break;
+		default:
+			throw new IOException(
+					"Wrong signal data type (should be between 0 (inclusive) and 17 (exclusive), but was \""
+							+ signalDataType + "\").");
+		}
+		l.trace("cnBlock.signalDataType = " + cnBlock.getSignalDataType());
+
+		TXBlock txBlock;
+		if (cnBlock.getPointerToTXBlock() != 0) {
+			this.filePointer = (int) cnBlock.getPointerToTXBlock();
+			txBlock = readTXBlock();
+		} else {
+			txBlock = null;
+		}
+		cnBlock.setTxBlock(txBlock);
+
+		return cnBlock;
 	}
 
 	/**

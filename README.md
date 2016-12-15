@@ -17,6 +17,7 @@ I'm using Vector's specification document for version 3.1.1, accessible from the
 #### Not tested
 
 * More than one DGBlock
+* More than one CGBlock
 
 ### Missing block types
 
@@ -31,3 +32,4 @@ I'm using Vector's specification document for version 3.1.1, accessible from the
 * PRBlock
 * Number of Record IDs > 0
 * TRBlock (only preparation exists)
+* Signal data type != `IEEE_754_FLOATING_POINT_FORMAT`

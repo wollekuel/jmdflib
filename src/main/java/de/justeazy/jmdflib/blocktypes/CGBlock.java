@@ -1,5 +1,7 @@
 package de.justeazy.jmdflib.blocktypes;
 
+import java.util.ArrayList;
+
 public class CGBlock {
 
 	private String blockTypeIdentifier;
@@ -9,6 +11,8 @@ public class CGBlock {
 	private long pointerToNextCGBlock;
 	
 	private long pointerToFirstCNBlock;
+	
+	private ArrayList<CNBlock> cnBlocks;
 	
 	private long pointerToTXBlock;
 	
@@ -100,6 +104,14 @@ public class CGBlock {
 
 	public void setPointerToFirstSRBlock(long pointerToFirstSRBlock) {
 		this.pointerToFirstSRBlock = pointerToFirstSRBlock;
+	}
+
+	public ArrayList<CNBlock> getCNBlocks() {
+		return cnBlocks;
+	}
+
+	public void setCNBlocks(ArrayList<CNBlock> cnBlocks) {
+		this.cnBlocks = cnBlocks;
 	} 
 	
 }

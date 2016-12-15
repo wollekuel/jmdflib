@@ -6,6 +6,7 @@ import java.io.File;
 import java.math.BigInteger;
 
 import de.justeazy.jmdflib.blocktypes.CGBlock;
+import de.justeazy.jmdflib.blocktypes.CNBlock;
 import de.justeazy.jmdflib.blocktypes.DGBlock;
 import de.justeazy.jmdflib.blocktypes.HDBlock;
 import de.justeazy.jmdflib.blocktypes.IDBlock;
@@ -14,8 +15,10 @@ import de.justeazy.jmdflib.blocktypes.TXBlock;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 
+import de.justeazy.jmdflib.enums.ChannelType;
 import de.justeazy.jmdflib.enums.FloatingPointFormat;
 import de.justeazy.jmdflib.enums.NumberOfRecordIDs;
+import de.justeazy.jmdflib.enums.SignalDataType;
 import de.justeazy.jmdflib.enums.TimeQualityClass;
 import junit.framework.TestCase;
 
@@ -122,6 +125,51 @@ public class MDFInputStreamTest extends TestCase {
 		assertThat(cgBlock.getSizeOfDataRecord()).isEqualTo(16);
 		assertThat(cgBlock.getNumberOfRecords()).isEqualTo(76326);
 		assertThat(cgBlock.getPointerToFirstSRBlock()).isEqualTo(0);
+
+		ArrayList<CNBlock> cnBlocks = cgBlock.getCNBlocks();
+		assertThat(cnBlocks).hasSize(2);
+		CNBlock cnBlock0 = cnBlocks.get(0);
+		assertThat(cnBlock0.getBlockTypeIdentifier()).isEqualTo("CN");
+		assertThat(cnBlock0.getBlockSize()).isEqualTo(228);
+		assertThat(cnBlock0.getPointerToNextCNBlock()).isEqualTo(692);
+		assertThat(cnBlock0.getPointerToCCBlock()).isEqualTo(572);
+		assertThat(cnBlock0.getPointerToCEBlock()).isEqualTo(0);
+		assertThat(cnBlock0.getPointerToCDBlock()).isEqualTo(0);
+		assertThat(cnBlock0.getPointerToTXBlock()).isEqualTo(920);
+		assertThat(cnBlock0.getChannelType()).isEqualTo(ChannelType.TIME_CHANNEL);
+		assertThat(cnBlock0.getShortSignalName().length()).isEqualTo(32);
+		assertThat(cnBlock0.getShortSignalName().trim()).isEqualTo("t");
+		assertThat(cnBlock0.getSignalDescription().isEmpty());
+		assertThat(cnBlock0.getStartOffsetInBits()).isEqualTo(0);
+		assertThat(cnBlock0.getNumberOfBits()).isEqualTo(64);
+		assertThat(cnBlock0.getSignalDataType()).isEqualTo(SignalDataType.IEEE_754_FLOATING_POINT_FORMAT_DOUBLE);
+
+		TXBlock txBlock0 = cnBlock0.getTXBlock();
+		assertThat(txBlock0.getBlockTypeIdentifier()).isEqualTo("TX");
+		assertThat(txBlock0.getBlockSize()).isEqualTo(5);
+		assertThat(txBlock0.getText()).isEmpty();
+
+		CNBlock cnBlock1 = cnBlocks.get(1);
+		assertThat(cnBlock1.getBlockTypeIdentifier()).isEqualTo("CN");
+		assertThat(cnBlock1.getBlockSize()).isEqualTo(228);
+		assertThat(cnBlock1.getPointerToNextCNBlock()).isEqualTo(0);
+		assertThat(cnBlock1.getPointerToCCBlock()).isEqualTo(634);
+		assertThat(cnBlock1.getPointerToCEBlock()).isEqualTo(0);
+		assertThat(cnBlock1.getPointerToCDBlock()).isEqualTo(0);
+		assertThat(cnBlock1.getPointerToTXBlock()).isEqualTo(680);
+		assertThat(cnBlock1.getChannelType()).isEqualTo(ChannelType.DATA_CHANNEL);
+		assertThat(cnBlock1.getShortSignalName().length()).isEqualTo(32);
+		assertThat(cnBlock1.getShortSignalName().trim()).isEqualTo("v");
+		assertThat(cnBlock1.getSignalDescription().length()).isEqualTo(128);
+		assertThat(cnBlock1.getSignalDescription().trim()).isEqualTo("v");
+		assertThat(cnBlock1.getStartOffsetInBits()).isEqualTo(64);
+		assertThat(cnBlock1.getNumberOfBits()).isEqualTo(64);
+		assertThat(cnBlock1.getSignalDataType()).isEqualTo(SignalDataType.IEEE_754_FLOATING_POINT_FORMAT_DOUBLE);
+
+		TXBlock txBlock1 = cnBlock1.getTXBlock();
+		assertThat(txBlock1.getBlockTypeIdentifier()).isEqualTo("TX");
+		assertThat(txBlock1.getBlockSize()).isEqualTo(5);
+		assertThat(txBlock1.getText()).isEmpty();
 	}
 
 }
