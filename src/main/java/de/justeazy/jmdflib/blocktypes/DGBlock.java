@@ -1,5 +1,7 @@
 package de.justeazy.jmdflib.blocktypes;
 
+import java.util.ArrayList;
+
 import de.justeazy.jmdflib.enums.NumberOfRecordIDs;
 
 public class DGBlock {
@@ -11,6 +13,8 @@ public class DGBlock {
 	private long pointerToNextDGBlock;
 
 	private long pointerToFirstCGBlock;
+	
+	private ArrayList<CGBlock> cgBlocks;
 
 	private long pointerToTRBlock;
 	
@@ -102,6 +106,14 @@ public class DGBlock {
 
 	public void setTRBlock(TRBlock trBlock) {
 		this.trBlock = trBlock;
+	}
+
+	public ArrayList<CGBlock> getCgBlocks() {
+		return cgBlocks;
+	}
+
+	public void setCGBlocks(ArrayList<CGBlock> cgBlocks) {
+		this.cgBlocks = cgBlocks;
 	}
 
 }

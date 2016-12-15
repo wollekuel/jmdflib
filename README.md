@@ -12,6 +12,7 @@ I'm using Vector's specification document for version 3.1.1, accessible from the
 * HDBlock
 * TXBlock
 * DGBlock
+* CGBlock
 
 #### Not tested
 

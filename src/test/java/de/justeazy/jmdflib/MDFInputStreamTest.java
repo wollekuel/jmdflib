@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.File;
 import java.math.BigInteger;
 
+import de.justeazy.jmdflib.blocktypes.CGBlock;
 import de.justeazy.jmdflib.blocktypes.DGBlock;
 import de.justeazy.jmdflib.blocktypes.HDBlock;
 import de.justeazy.jmdflib.blocktypes.IDBlock;
@@ -85,10 +86,8 @@ public class MDFInputStreamTest extends TestCase {
 		assertThat(hdBlock.getTimeQualityClass()).isEqualTo(TimeQualityClass.LOCAL_PC_REFERENCE_TIME);
 		assertThat(hdBlock.getTimerIdentification().length()).isEqualTo(32);
 		assertThat(hdBlock.getTimerIdentification().trim()).isEqualTo("0");
-	}
 
-	public void testTxBlock() throws Exception {
-		TXBlock txBlock = is.getTXBlock();
+		TXBlock txBlock = hdBlock.getTXBlock();
 		assertThat(txBlock.getBlockTypeIdentifier()).isEqualTo("TX");
 		assertThat(txBlock.getBlockSize()).isEqualTo(5);
 		assertThat(txBlock.getText()).isEmpty();
@@ -109,6 +108,20 @@ public class MDFInputStreamTest extends TestCase {
 		assertThat(dgBlock.getReserved()).isEqualTo(0);
 
 		assertThat(dgBlock.getTRBlock()).isNull();
+
+		ArrayList<CGBlock> cgBlocks = dgBlock.getCgBlocks();
+		assertThat(cgBlocks).hasSize(1);
+		CGBlock cgBlock = cgBlocks.get(0);
+		assertThat(cgBlock.getBlockTypeIdentifier()).isEqualTo("CG");
+		assertThat(cgBlock.getBlockSize()).isEqualTo(30);
+		assertThat(cgBlock.getPointerToNextCGBlock()).isEqualTo(0);
+		assertThat(cgBlock.getPointerToFirstCNBlock()).isEqualTo(930);
+		assertThat(cgBlock.getPointerToTXBlock()).isEqualTo(528);
+		assertThat(cgBlock.getRecordID()).isEqualTo(1);
+		assertThat(cgBlock.getNumberOfChannels()).isEqualTo(2);
+		assertThat(cgBlock.getSizeOfDataRecord()).isEqualTo(16);
+		assertThat(cgBlock.getNumberOfRecords()).isEqualTo(76326);
+		assertThat(cgBlock.getPointerToFirstSRBlock()).isEqualTo(0);
 	}
 
 }

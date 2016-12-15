@@ -25,6 +25,8 @@ public class HDBlock {
 	private long pointerToFirstDGBlock;
 
 	private long pointerToTXBlock;
+	
+	private TXBlock txBlock;
 
 	private long pointerToPRBlock;
 
@@ -176,6 +178,14 @@ public class HDBlock {
 
 	public void setTimerIdentification(String timerIdentification) {
 		this.timerIdentification = timerIdentification;
+	}
+
+	public TXBlock getTXBlock() {
+		return txBlock;
+	}
+
+	public void setTXBlock(TXBlock txBlock) {
+		this.txBlock = txBlock;
 	}
 
 }

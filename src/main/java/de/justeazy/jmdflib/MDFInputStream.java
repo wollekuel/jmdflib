@@ -12,6 +12,7 @@ import java.util.regex.Pattern;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import de.justeazy.jmdflib.blocktypes.CGBlock;
 import de.justeazy.jmdflib.blocktypes.DGBlock;
 import de.justeazy.jmdflib.blocktypes.HDBlock;
 import de.justeazy.jmdflib.blocktypes.IDBlock;
@@ -72,11 +73,6 @@ public class MDFInputStream extends FileInputStream {
 	 * HDBlock
 	 */
 	private HDBlock hdBlock;
-
-	/**
-	 * TXBlock
-	 */
-	private TXBlock txBlock;
 
 	/**
 	 * PRBlock
@@ -147,7 +143,6 @@ public class MDFInputStream extends FileInputStream {
 	private void processFile() throws IOException {
 		readIDBlock();
 		readHDBlock();
-		readTXBlock();
 		readPRBlock();
 		readDGBlocks();
 	}
@@ -366,6 +361,15 @@ public class MDFInputStream extends FileInputStream {
 		String timerIdentification = readChar(32);
 		hdBlock.setTimerIdentification(timerIdentification);
 		l.trace("timerIdentification = " + timerIdentification);
+
+		TXBlock txBlock;
+		if (hdBlock.getPointerToTXBlock() != 0) {
+			this.filePointer = (int) hdBlock.getPointerToTXBlock();
+			txBlock = readTXBlock();
+		} else {
+			txBlock = null;
+		}
+		hdBlock.setTXBlock(txBlock);
 	}
 
 	/**
@@ -386,45 +390,32 @@ public class MDFInputStream extends FileInputStream {
 	 * 
 	 * @throws IOException
 	 */
-	private void readTXBlock() throws IOException {
-		if (hdBlock.getPointerToTXBlock() != 0) {
-			txBlock = new TXBlock();
-			this.filePointer = (int) hdBlock.getPointerToTXBlock();
+	private TXBlock readTXBlock() throws IOException {
+		TXBlock txBlock = new TXBlock();
+		this.filePointer = (int) hdBlock.getPointerToTXBlock();
 
-			String blockTypeIdentifier = readChar(2);
-			if (!blockTypeIdentifier.equals("TX")) {
-				throw new IOException(
-						"Wrong block type identifier (should be \"TX\", but was \"" + blockTypeIdentifier + "\").");
-			}
-			txBlock.setBlockTypeIdentifier(blockTypeIdentifier);
-			l.trace("blockTypeIdentifier = " + blockTypeIdentifier);
-
-			int blockSize = readUint16();
-			txBlock.setBlockSize(blockSize);
-			l.trace("blockSize = " + blockSize);
-
-			String text = "";
-			for (int i = filePointer; i < filePointer + blockSize - 3; i++) {
-				if (content[i] == 0x00) {
-					break;
-				}
-				text += (char) content[i];
-			}
-			txBlock.setText(text);
-			l.trace("text = " + text);
-		} else {
-			txBlock = null;
+		String blockTypeIdentifier = readChar(2);
+		if (!blockTypeIdentifier.equals("TX")) {
+			throw new IOException(
+					"Wrong block type identifier (should be \"TX\", but was \"" + blockTypeIdentifier + "\").");
 		}
-	}
+		txBlock.setBlockTypeIdentifier(blockTypeIdentifier);
+		l.trace("blockTypeIdentifier = " + blockTypeIdentifier);
 
-	/**
-	 * <p>
-	 * Returns the TXBlock.
-	 * </p>
-	 * 
-	 * @return TXBlock
-	 */
-	public TXBlock getTXBlock() {
+		int blockSize = readUint16();
+		txBlock.setBlockSize(blockSize);
+		l.trace("blockSize = " + blockSize);
+
+		String text = "";
+		for (int i = filePointer; i < filePointer + blockSize - 3; i++) {
+			if (content[i] == 0x00) {
+				break;
+			}
+			text += (char) content[i];
+		}
+		txBlock.setText(text);
+		l.trace("text = " + text);
+
 		return txBlock;
 	}
 
@@ -522,11 +513,27 @@ public class MDFInputStream extends FileInputStream {
 					dgBlock.setTRBlock(null);
 				}
 
-				// TODO set file pointer to first CGBlock and read it
+				// set file pointer to first CGBlock and read while there are no
+				// more CGBlocks
+				ArrayList<CGBlock> cgBlocks;
+				if (dgBlock.getPointerToFirstCGBlock() != 0) {
+					cgBlocks = new ArrayList<CGBlock>();
+					this.filePointer = (int) dgBlock.getPointerToFirstCGBlock();
+
+					CGBlock cgBlock;
+					do {
+						cgBlock = readCGBlock();
+						cgBlocks.add(cgBlock);
+						this.filePointer = (int) cgBlock.getPointerToNextCGBlock();
+					} while (cgBlock.getPointerToNextCGBlock() != 0);
+				} else {
+					cgBlocks = null;
+				}
+				dgBlock.setCGBlocks(cgBlocks);
 
 				dgBlocks.add(dgBlock);
 
-				// TODO set file pointer to next DGBlock if there is one
+				this.filePointer = (int) dgBlock.getPointerToNextDGBlock();
 			} while (dgBlock.getPointerToNextDGBlock() != 0);
 		} else {
 			dgBlocks = null;
@@ -556,6 +563,56 @@ public class MDFInputStream extends FileInputStream {
 		l.debug("blockTypeIdentifier = " + blockTypeIdentifier);
 
 		return trBlock;
+	}
+
+	private CGBlock readCGBlock() throws IOException {
+		CGBlock cgBlock = new CGBlock();
+
+		String blockTypeIdentifier = readChar(2);
+		if (!blockTypeIdentifier.equals("CG")) {
+			throw new IOException(
+					"Wrong block type identifier (should be \"CG\", but was \"" + blockTypeIdentifier + "\"");
+		}
+		cgBlock.setBlockTypeIdentifier(blockTypeIdentifier);
+		l.trace("blockTypeIdentifier = " + blockTypeIdentifier);
+
+		int blockSize = readUint16();
+		cgBlock.setBlockSize(blockSize);
+		l.trace("blockSize = " + blockSize);
+
+		long pointerToNextCGBlock = readUint32();
+		cgBlock.setPointerToNextCGBlock(pointerToNextCGBlock);
+		l.trace("pointerToNextCGBlock = " + pointerToNextCGBlock);
+
+		long pointerToFirstCNBlock = readUint32();
+		cgBlock.setPointerToFirstCNBlock(pointerToFirstCNBlock);
+		l.trace("pointerToFirstCNBlock = " + pointerToFirstCNBlock);
+
+		long pointerToTXBlock = readUint32();
+		cgBlock.setPointerToTXBlock(pointerToTXBlock);
+		l.trace("pointerToTXBlock = " + pointerToTXBlock);
+
+		int recordID = readUint16();
+		cgBlock.setRecordID(recordID);
+		l.trace("recordID = " + recordID);
+
+		int numberOfChannels = readUint16();
+		cgBlock.setNumberOfChannels(numberOfChannels);
+		l.trace("numberOfChannels = " + numberOfChannels);
+
+		int sizeOfDataRecord = readUint16();
+		cgBlock.setSizeOfDataRecord(sizeOfDataRecord);
+		l.trace("sizeOfDataRecord = " + sizeOfDataRecord);
+
+		long numberOfRecords = readUint32();
+		cgBlock.setNumberOfRecords(numberOfRecords);
+		l.trace("numberOfRecords = " + numberOfRecords);
+
+		long pointerToFirstSRBlock = readUint32();
+		cgBlock.setPointerToFirstSRBlock(pointerToFirstSRBlock);
+		l.trace("pointerToFirstSRBlock = " + pointerToFirstSRBlock);
+
+		return cgBlock;
 	}
 
 	/**
