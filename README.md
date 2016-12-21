@@ -13,6 +13,8 @@ I'm using Vector's specification document for version 3.1.1, accessible from the
 * TXBlock
 * DGBlock
 * CGBlock
+* CNBlock
+* CCBlock (partially)
 
 #### Not tested
 
@@ -33,3 +35,15 @@ I'm using Vector's specification document for version 3.1.1, accessible from the
 * Number of Record IDs > 0
 * TRBlock (only preparation exists)
 * Signal data type != `IEEE_754_FLOATING_POINT_FORMAT`
+* CCBlock
+	* Tabular with interpolation
+	* Tabular
+	* Polynomial function
+	* Exponential function
+	* Logarithmic function
+	* Rational conversion formula
+	* ASAM-MCD2 Text formula
+	* ASAM-MCD2 Text table, (COMPU_VTAB)
+	* ASAM-MCD2 Text Range table (COMPU_VTAB_RANGE)
+	* Date
+	* Time

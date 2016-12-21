@@ -12,6 +12,9 @@ import java.util.regex.Pattern;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import de.justeazy.jmdflib.blocktypes.CCBlock;
+import de.justeazy.jmdflib.blocktypes.CCBlockLinear2Parameters;
+import de.justeazy.jmdflib.blocktypes.CCBlockOneToOne;
 import de.justeazy.jmdflib.blocktypes.CGBlock;
 import de.justeazy.jmdflib.blocktypes.CNBlock;
 import de.justeazy.jmdflib.blocktypes.DGBlock;
@@ -24,6 +27,7 @@ import de.justeazy.jmdflib.blocktypes.TXBlock;
 import java.nio.ByteOrder;
 
 import de.justeazy.jmdflib.enums.ChannelType;
+import de.justeazy.jmdflib.enums.ConversionType;
 import de.justeazy.jmdflib.enums.FloatingPointFormat;
 import de.justeazy.jmdflib.enums.NumberOfRecordIDs;
 import de.justeazy.jmdflib.enums.SignalDataType;
@@ -754,6 +758,44 @@ public class MDFInputStream extends FileInputStream {
 		}
 		l.trace("cnBlock.signalDataType = " + cnBlock.getSignalDataType());
 
+		boolean valueRangeValid;
+		valueRangeValid = readUint16() > 0;
+		cnBlock.setValueRangeValid(valueRangeValid);
+		l.trace("valueRangeValid = " + valueRangeValid);
+
+		double minimumSignalValue = readDouble();
+		cnBlock.setMinimumSignalValue(minimumSignalValue);
+		l.trace("minimumSignalValue = " + minimumSignalValue);
+
+		double maximumSignalValue = readDouble();
+		cnBlock.setMaximumSignalValue(maximumSignalValue);
+		l.trace("maximumSignalValue = " + maximumSignalValue);
+
+		double samplingRate = readDouble();
+		cnBlock.setSamplingRate(samplingRate);
+		l.trace("samplingRate = " + samplingRate);
+
+		long pointerToTXBlockLongSignalName = readUint32();
+		cnBlock.setPointerToTXBlockLongSignalName(pointerToTXBlockLongSignalName);
+		l.trace("pointerToTXBlockLongSignalName = " + pointerToTXBlockLongSignalName);
+
+		long pointerToTXBlockDisplayName = readUint32();
+		cnBlock.setPointerToTXBlockDisplayName(pointerToTXBlockDisplayName);
+		l.trace("pointerToTXBlockDisplayName = " + pointerToTXBlockDisplayName);
+
+		int additionalByteOffset = readUint16();
+		cnBlock.setAdditionalByteOffset(additionalByteOffset);
+		l.trace("additionalByteOffset = " + additionalByteOffset);
+
+		CCBlock ccBlock;
+		if (cnBlock.getPointerToCCBlock() != 0) {
+			this.filePointer = (int) cnBlock.getPointerToCCBlock();
+			ccBlock = readCCBlock();
+		} else {
+			ccBlock = null;
+		}
+		cnBlock.setCcBlock(ccBlock);
+
 		TXBlock txBlock;
 		if (cnBlock.getPointerToTXBlock() != 0) {
 			this.filePointer = (int) cnBlock.getPointerToTXBlock();
@@ -763,7 +805,90 @@ public class MDFInputStream extends FileInputStream {
 		}
 		cnBlock.setTxBlock(txBlock);
 
+		if (cnBlock.getPointerToTXBlockLongSignalName() != 0) {
+			filePointer = (int) cnBlock.getPointerToTXBlockLongSignalName();
+			txBlock = readTXBlock();
+		} else {
+			txBlock = null;
+		}
+		cnBlock.setTxBlockLongSignalName(txBlock);
+
+		if (cnBlock.getPointerToTXBlockDisplayName() != 0) {
+			filePointer = (int) cnBlock.getPointerToTXBlockDisplayName();
+			txBlock = readTXBlock();
+		} else {
+			txBlock = null;
+		}
+		cnBlock.setTxBlockDisplayName(txBlock);
+
 		return cnBlock;
+	}
+
+	private CCBlock readCCBlock() throws IOException {
+		CCBlock result = null;
+
+		String blockTypeIdentifier = readChar(2);
+		if (!blockTypeIdentifier.equals("CC")) {
+			throw new IOException(
+					"Wrong block type identifier (should be \"CC\", but was \"" + blockTypeIdentifier + "\").");
+		}
+		l.trace("blockTypeIdentifier = " + blockTypeIdentifier);
+
+		int blockSize = readUint16();
+		l.trace("blockSize = " + blockSize);
+
+		boolean physicalValueRangeValid = readUint16() > 0;
+		l.trace("physicalValueRangeValid = " + physicalValueRangeValid);
+
+		double minimumPhysicalSignalValue = readDouble();
+		l.trace("minimumPhysicalSignalValue = " + minimumPhysicalSignalValue);
+
+		double maximumPhysicalSignalValue = readDouble();
+		l.trace("maximumPhysicalSignalvalue = " + maximumPhysicalSignalValue);
+
+		String physicalUnit = readChar(20);
+		l.trace("physicalUnit = \"" + physicalUnit + "\"");
+
+		int conversionType = readUint16();
+		l.trace("conversionType = " + conversionType);
+
+		int sizeInformation = readUint16();
+		l.trace("sizeInformation = " + sizeInformation);
+
+		switch (conversionType) {
+		case 0:
+			if (sizeInformation == 2) {
+				result = new CCBlockLinear2Parameters();
+
+				double p1 = readDouble();
+				((CCBlockLinear2Parameters) result).setP1(p1);
+				l.trace("p1 = " + p1);
+
+				double p2 = readDouble();
+				((CCBlockLinear2Parameters) result).setP2(p2);
+				l.trace("p2 = " + p2);
+			} else {
+				throw new IOException("Wrong size information (" + sizeInformation + "). Not implemented yet.");
+			}
+			result.setConversionType(ConversionType.PARAMETRIC_LINEAR);
+			break;
+		case 65535:
+			result = new CCBlockOneToOne();
+			result.setConversionType(ConversionType.ONE_TO_ONE_FORMULA);
+			break;
+		default:
+			throw new IOException("Wrong conversion type (" + conversionType + "). Not implemented yet.");
+		}
+
+		result.setBlockTypeIdentifier(blockTypeIdentifier);
+		result.setBlockSize(blockSize);
+		result.setPhysicalValueRangeValid(physicalValueRangeValid);
+		result.setMinimumPhysicalSignalValue(minimumPhysicalSignalValue);
+		result.setMaximumPhysicalSignalValue(maximumPhysicalSignalValue);
+		result.setPhysicalUnit(physicalUnit);
+		result.setSizeInformation(sizeInformation);
+
+		return result;
 	}
 
 	/**
@@ -948,6 +1073,36 @@ public class MDFInputStream extends FileInputStream {
 			throw new IOException(
 					"Wrong byte order (should be LITTLE_ENDIAN, but was BIG_ENDIAN). Not implemented yet.");
 		}
+	}
+
+	private double readDouble() {
+		ByteOrder byteOrder;
+		if (this.idBlock == null || idBlock.getDefaultByteOrder() == null) {
+			byteOrder = ByteOrder.LITTLE_ENDIAN;
+		} else {
+			byteOrder = idBlock.getDefaultByteOrder();
+		}
+		double result = readDouble(content[filePointer], content[filePointer + 1], content[filePointer + 2],
+				content[filePointer + 3], content[filePointer + 4], content[filePointer + 5], content[filePointer + 6],
+				content[filePointer + 7], byteOrder);
+		filePointer += 8;
+		return result;
+	}
+
+	private static double readDouble(byte byte1, byte byte2, byte byte3, byte byte4, byte byte5, byte byte6, byte byte7,
+			byte byte8, ByteOrder byteOrder) {
+		ByteBuffer buffer = ByteBuffer.allocate(8);
+		buffer.put(byte1);
+		buffer.put(byte2);
+		buffer.put(byte3);
+		buffer.put(byte4);
+		buffer.put(byte5);
+		buffer.put(byte6);
+		buffer.put(byte7);
+		buffer.put(byte8);
+		buffer.order(byteOrder);
+		buffer.flip();
+		return buffer.getDouble();
 	}
 
 }

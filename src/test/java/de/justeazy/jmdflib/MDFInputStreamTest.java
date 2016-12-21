@@ -5,6 +5,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.File;
 import java.math.BigInteger;
 
+import de.justeazy.jmdflib.blocktypes.CCBlock;
+import de.justeazy.jmdflib.blocktypes.CCBlockLinear2Parameters;
+import de.justeazy.jmdflib.blocktypes.CCBlockOneToOne;
 import de.justeazy.jmdflib.blocktypes.CGBlock;
 import de.justeazy.jmdflib.blocktypes.CNBlock;
 import de.justeazy.jmdflib.blocktypes.DGBlock;
@@ -16,6 +19,7 @@ import java.nio.ByteOrder;
 import java.util.ArrayList;
 
 import de.justeazy.jmdflib.enums.ChannelType;
+import de.justeazy.jmdflib.enums.ConversionType;
 import de.justeazy.jmdflib.enums.FloatingPointFormat;
 import de.justeazy.jmdflib.enums.NumberOfRecordIDs;
 import de.justeazy.jmdflib.enums.SignalDataType;
@@ -143,11 +147,42 @@ public class MDFInputStreamTest extends TestCase {
 		assertThat(cnBlock0.getStartOffsetInBits()).isEqualTo(0);
 		assertThat(cnBlock0.getNumberOfBits()).isEqualTo(64);
 		assertThat(cnBlock0.getSignalDataType()).isEqualTo(SignalDataType.IEEE_754_FLOATING_POINT_FORMAT_DOUBLE);
+		assertThat(cnBlock0.isValueRangeValid()).isFalse();
+		assertThat(cnBlock0.getMinimumSignalValue()).isEqualTo(0.0);
+		assertThat(cnBlock0.getMaximumSignalValue()).isEqualTo(0.0);
+		assertThat(cnBlock0.getSamplingRate()).isEqualTo(0.0);
+		assertThat(cnBlock0.getPointerToTXBlockLongSignalName()).isEqualTo(553);
+		assertThat(cnBlock0.getPointerToTXBlockDisplayName()).isEqualTo(925);
+		assertThat(cnBlock0.getAdditionalByteOffset()).isEqualTo(0);
+
+		CCBlock ccBlock0 = cnBlock0.getCcBlock();
+		assertThat(ccBlock0.getBlockTypeIdentifier()).isEqualTo("CC");
+		assertThat(ccBlock0.getBlockSize()).isEqualTo(62);
+		assertThat(ccBlock0.isPhysicalValueRangeValid()).isFalse();
+		assertThat(ccBlock0.getMinimumPhysicalSignalValue()).isEqualTo(0.0);
+		assertThat(ccBlock0.getMaximumPhysicalSignalValue()).isEqualTo(0.0);
+		assertThat(ccBlock0.getPhysicalUnit()).hasSize(20);
+		assertThat(ccBlock0.getPhysicalUnit().trim()).isEqualTo("s");
+		assertThat(ccBlock0.getConversionType()).isEqualTo(ConversionType.PARAMETRIC_LINEAR);
+		assertThat(ccBlock0.getSizeInformation()).isEqualTo(2);
+		assertThat(ccBlock0).isInstanceOf(CCBlockLinear2Parameters.class);
+		assertThat(((CCBlockLinear2Parameters) ccBlock0).getP1()).isEqualTo(0.0);
+		assertThat(((CCBlockLinear2Parameters) ccBlock0).getP2()).isEqualTo(1.0);
 
 		TXBlock txBlock0 = cnBlock0.getTXBlock();
 		assertThat(txBlock0.getBlockTypeIdentifier()).isEqualTo("TX");
 		assertThat(txBlock0.getBlockSize()).isEqualTo(5);
 		assertThat(txBlock0.getText()).isEmpty();
+
+		TXBlock txBlock0LongSignalName = cnBlock0.getTxBlockLongSignalName();
+		assertThat(txBlock0LongSignalName.getBlockTypeIdentifier()).isEqualTo("TX");
+		assertThat(txBlock0LongSignalName.getBlockSize()).isEqualTo(5);
+		assertThat(txBlock0LongSignalName.getText()).isEmpty();
+
+		TXBlock txBlock0DisplayName = cnBlock0.getTxBlockDisplayName();
+		assertThat(txBlock0DisplayName.getBlockTypeIdentifier()).isEqualTo("TX");
+		assertThat(txBlock0DisplayName.getBlockSize()).isEqualTo(5);
+		assertThat(txBlock0DisplayName.getText()).isEmpty();
 
 		CNBlock cnBlock1 = cnBlocks.get(1);
 		assertThat(cnBlock1.getBlockTypeIdentifier()).isEqualTo("CN");
@@ -165,11 +200,40 @@ public class MDFInputStreamTest extends TestCase {
 		assertThat(cnBlock1.getStartOffsetInBits()).isEqualTo(64);
 		assertThat(cnBlock1.getNumberOfBits()).isEqualTo(64);
 		assertThat(cnBlock1.getSignalDataType()).isEqualTo(SignalDataType.IEEE_754_FLOATING_POINT_FORMAT_DOUBLE);
+		assertThat(cnBlock1.isValueRangeValid()).isFalse();
+		assertThat(cnBlock1.getMinimumSignalValue()).isEqualTo(0.0);
+		assertThat(cnBlock1.getMaximumSignalValue()).isEqualTo(0.0);
+		assertThat(cnBlock1.getSamplingRate()).isEqualTo(0.0);
+		assertThat(cnBlock1.getPointerToTXBlockLongSignalName()).isEqualTo(560);
+		assertThat(cnBlock1.getPointerToTXBlockDisplayName()).isEqualTo(685);
+		assertThat(cnBlock1.getAdditionalByteOffset()).isEqualTo(0);
+
+		CCBlock ccBlock1 = cnBlock1.getCcBlock();
+		assertThat(ccBlock1.getBlockTypeIdentifier()).isEqualTo("CC");
+		assertThat(ccBlock1.getBlockSize()).isEqualTo(46);
+		assertThat(ccBlock1.isPhysicalValueRangeValid()).isFalse();
+		assertThat(ccBlock1.getMinimumPhysicalSignalValue()).isEqualTo(0.0);
+		assertThat(ccBlock1.getMaximumPhysicalSignalValue()).isEqualTo(0.0);
+		assertThat(ccBlock1.getPhysicalUnit()).hasSize(20);
+		assertThat(ccBlock1.getPhysicalUnit().trim()).isEmpty();
+		assertThat(ccBlock1.getConversionType()).isEqualTo(ConversionType.ONE_TO_ONE_FORMULA);
+		assertThat(ccBlock1.getSizeInformation()).isEqualTo(0);
+		assertThat(ccBlock1).isInstanceOf(CCBlockOneToOne.class);
 
 		TXBlock txBlock1 = cnBlock1.getTXBlock();
 		assertThat(txBlock1.getBlockTypeIdentifier()).isEqualTo("TX");
 		assertThat(txBlock1.getBlockSize()).isEqualTo(5);
 		assertThat(txBlock1.getText()).isEmpty();
+
+		TXBlock txBlock1LongSignalName = cnBlock1.getTxBlockLongSignalName();
+		assertThat(txBlock1LongSignalName.getBlockTypeIdentifier()).isEqualTo("TX");
+		assertThat(txBlock1LongSignalName.getBlockSize()).isEqualTo(5);
+		assertThat(txBlock1LongSignalName.getText()).isEmpty();
+
+		TXBlock txBlock1DisplayName = cnBlock1.getTxBlockDisplayName();
+		assertThat(txBlock1DisplayName.getBlockTypeIdentifier()).isEqualTo("TX");
+		assertThat(txBlock1DisplayName.getBlockSize()).isEqualTo(5);
+		assertThat(txBlock1DisplayName.getText()).isEmpty();
 	}
 
 }

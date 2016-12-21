@@ -13,12 +13,14 @@ public class CNBlock {
 
 	private long pointerToCCBlock;
 
+	private CCBlock ccBlock;
+
 	private long pointerToCEBlock;
 
 	private long pointerToCDBlock;
 
 	private long pointerToTXBlock;
-	
+
 	private TXBlock txBlock;
 
 	private ChannelType channelType;
@@ -38,13 +40,17 @@ public class CNBlock {
 	private double minimumSignalValue;
 
 	private double maximumSignalValue;
-	
+
 	private double samplingRate;
-	
+
 	private long pointerToTXBlockLongSignalName;
-	
+
+	private TXBlock txBlockLongSignalName;
+
 	private long pointerToTXBlockDisplayName;
-	
+
+	private TXBlock txBlockDisplayName;
+
 	private int additionalByteOffset;
 
 	public String getBlockTypeIdentifier() {
@@ -213,6 +219,30 @@ public class CNBlock {
 
 	public void setTxBlock(TXBlock txBlock) {
 		this.txBlock = txBlock;
+	}
+
+	public TXBlock getTxBlockLongSignalName() {
+		return txBlockLongSignalName;
+	}
+
+	public void setTxBlockLongSignalName(TXBlock txBlockLongSignalName) {
+		this.txBlockLongSignalName = txBlockLongSignalName;
+	}
+
+	public TXBlock getTxBlockDisplayName() {
+		return txBlockDisplayName;
+	}
+
+	public void setTxBlockDisplayName(TXBlock txBlockDisplayName) {
+		this.txBlockDisplayName = txBlockDisplayName;
+	}
+
+	public CCBlock getCcBlock() {
+		return ccBlock;
+	}
+
+	public void setCcBlock(CCBlock ccBlock) {
+		this.ccBlock = ccBlock;
 	}
 
 }
