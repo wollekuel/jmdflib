@@ -15,6 +15,7 @@ import org.apache.logging.log4j.Logger;
 import de.justeazy.jmdflib.blocktypes.CCBlock;
 import de.justeazy.jmdflib.blocktypes.CCBlockLinear2Parameters;
 import de.justeazy.jmdflib.blocktypes.CCBlockOneToOne;
+import de.justeazy.jmdflib.blocktypes.CEBlock;
 import de.justeazy.jmdflib.blocktypes.CGBlock;
 import de.justeazy.jmdflib.blocktypes.CNBlock;
 import de.justeazy.jmdflib.blocktypes.DGBlock;
@@ -796,6 +797,15 @@ public class MDFInputStream extends FileInputStream {
 		}
 		cnBlock.setCcBlock(ccBlock);
 
+		CEBlock ceBlock;
+		if (cnBlock.getPointerToCEBlock() != 0) {
+			filePointer = (int) cnBlock.getPointerToCEBlock();
+			ceBlock = readCEBlock();
+		} else {
+			ceBlock = null;
+		}
+		cnBlock.setCeBlock(ceBlock);
+
 		TXBlock txBlock;
 		if (cnBlock.getPointerToTXBlock() != 0) {
 			this.filePointer = (int) cnBlock.getPointerToTXBlock();
@@ -889,6 +899,10 @@ public class MDFInputStream extends FileInputStream {
 		result.setSizeInformation(sizeInformation);
 
 		return result;
+	}
+
+	private CEBlock readCEBlock() throws IOException {
+		throw new IOException("Not implemented yet.");
 	}
 
 	/**

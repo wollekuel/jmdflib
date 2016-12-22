@@ -16,6 +16,8 @@ public class CNBlock {
 	private CCBlock ccBlock;
 
 	private long pointerToCEBlock;
+	
+	private CEBlock ceBlock;
 
 	private long pointerToCDBlock;
 
@@ -243,6 +245,14 @@ public class CNBlock {
 
 	public void setCcBlock(CCBlock ccBlock) {
 		this.ccBlock = ccBlock;
+	}
+
+	public CEBlock getCeBlock() {
+		return ceBlock;
+	}
+
+	public void setCeBlock(CEBlock ceBlock) {
+		this.ceBlock = ceBlock;
 	}
 
 }

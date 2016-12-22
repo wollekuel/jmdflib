@@ -47,3 +47,4 @@ I'm using Vector's specification document for version 3.1.1, accessible from the
 	* ASAM-MCD2 Text Range table (COMPU_VTAB_RANGE)
 	* Date
 	* Time
+* CEBlock
