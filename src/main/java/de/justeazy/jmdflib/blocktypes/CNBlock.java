@@ -20,6 +20,8 @@ public class CNBlock {
 	private CEBlock ceBlock;
 
 	private long pointerToCDBlock;
+	
+	private CDBlock cdBlock;
 
 	private long pointerToTXBlock;
 
@@ -253,6 +255,14 @@ public class CNBlock {
 
 	public void setCeBlock(CEBlock ceBlock) {
 		this.ceBlock = ceBlock;
+	}
+
+	public CDBlock getCdBlock() {
+		return cdBlock;
+	}
+
+	public void setCdBlock(CDBlock cdBlock) {
+		this.cdBlock = cdBlock;
 	}
 
 }
