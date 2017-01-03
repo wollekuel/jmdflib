@@ -1,10 +1,16 @@
 package de.justeazy.jmdflib.blocktypes;
 
 public class CCBlockLinear2Parameters extends CCBlock {
-	
+
 	private double p1;
-	
+
 	private double p2;
+
+	@Override
+	public double convert(long l) {
+		double result = l * p2 + p1;
+		return result;
+	}
 
 	public double getP1() {
 		return p1;

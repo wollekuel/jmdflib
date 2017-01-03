@@ -1,4 +1,4 @@
-# jMDFLib ![Build Status](http://wollekuel.spdns.de:8080/buildStatus/icon?job=jmdflib)
+# jMDFLib [![Build Status](https://travis-ci.org/wollekuel/jmdflib.svg?branch=master)](https://travis-ci.org/wollekuel/jmdflib)
 
 I'm thinking about doing a re-implementation of [jMDFLib](https://sourceforge.net/projects/jmdflib/).
 
@@ -49,3 +49,6 @@ I'm using Vector's specification document for version 3.1.1, accessible from the
 	* Time
 * CEBlock
 * CDBlock
+* Reading data
+	* Data records with record IDs
+	* Start offset % 8 bits != 0

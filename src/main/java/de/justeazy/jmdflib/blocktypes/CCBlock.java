@@ -14,7 +14,7 @@ import de.justeazy.jmdflib.enums.ConversionType;
  * 
  * @author Henrik Peters <henrik.peters@tu-clausthal.de>
  */
-public class CCBlock {
+public abstract class CCBlock {
 
 	private String blockTypeIdentifier;
 
@@ -31,8 +31,11 @@ public class CCBlock {
 	private ConversionType conversionType;
 
 	private int sizeInformation;
-	
-	protected CCBlock() {};
+
+	protected CCBlock() {
+	};
+
+	public abstract double convert(long l);
 
 	public String getBlockTypeIdentifier() {
 		return blockTypeIdentifier;

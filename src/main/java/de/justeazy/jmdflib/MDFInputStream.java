@@ -139,6 +139,7 @@ public class MDFInputStream extends FileInputStream {
 		System.arraycopy(buffer, 0, this.content, c, remainingBytes);
 
 		processFile();
+		readData();
 	}
 
 	/**
@@ -917,6 +918,60 @@ public class MDFInputStream extends FileInputStream {
 
 	private CDBlock readCDBlock() throws IOException {
 		throw new IOException("Not implemented yet.");
+	}
+
+	private void readData() throws IOException {
+		ByteOrder byteOrder;
+		if (this.idBlock == null || idBlock.getDefaultByteOrder() == null) {
+			byteOrder = ByteOrder.LITTLE_ENDIAN;
+		} else {
+			byteOrder = idBlock.getDefaultByteOrder();
+		}
+
+		for (DGBlock dgBlock : dgBlocks) {
+			if (dgBlock.getNumberOfRecordIDs() != NumberOfRecordIDs.DATA_RECORDS_WITHOUT_RECORD_ID) {
+				throw new IOException("Data records without record IDs not implemented yet.");
+			}
+			l.trace("dgBlock.numberOfRecordIDs = " + dgBlock.getNumberOfRecordIDs());
+			ArrayList<CGBlock> cgBlocks = dgBlock.getCgBlocks();
+			for (CGBlock cgBlock : cgBlocks) {
+				l.trace(" cgBlock.sizeOfDataRecord = " + cgBlock.getSizeOfDataRecord());
+				l.trace(" cgBlock.numberOfRecords = " + cgBlock.getNumberOfRecords());
+				ArrayList<CNBlock> cnBlocks = cgBlock.getCNBlocks();
+				for (CNBlock cnBlock : cnBlocks) {
+					l.trace("  cnBlock.shortSignalName = " + cnBlock.getShortSignalName());
+
+					int position = (int) dgBlock.getPointerToDataBlock();
+					l.trace("   position = " + position);
+
+					l.trace("   cnBlock.additionalByteOffset = " + cnBlock.getAdditionalByteOffset());
+					position += cnBlock.getAdditionalByteOffset();
+					l.trace("   position = " + position);
+					l.trace("   cnBlock.startOffsetInBits = " + cnBlock.getStartOffsetInBits());
+					if (cnBlock.getStartOffsetInBits() % 8 != 0) {
+						throw new IOException("Unaligned bytes not implemented yet.");
+					}
+					position += (cnBlock.getStartOffsetInBits() / 8);
+					l.trace("   position = " + position);
+
+					l.trace("   cnBlock.signalDataType = " + cnBlock.getSignalDataType());
+					l.trace("   cnBlock.numberOfBits = " + cnBlock.getNumberOfBits());
+
+					for (int i = 0; i < cgBlock.getNumberOfRecords(); i++) {
+						if (cnBlock.getSignalDataType().equals(SignalDataType.IEEE_754_FLOATING_POINT_FORMAT_DOUBLE)) {
+							if (cnBlock.getNumberOfBits() == 64) {
+								// l.debug("position = " + position);
+								BigInteger result = readUint64(content[position], content[position + 1],
+										content[position + 2], content[position + 3], content[position + 4],
+										content[position + 5], content[position + 6], content[position + 7], byteOrder);
+								// l.debug("result = " + result);
+								position += cgBlock.getSizeOfDataRecord();
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 
 	/**
